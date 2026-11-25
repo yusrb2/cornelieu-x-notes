@@ -153,8 +153,8 @@ export function ActiveRecallView({
               fontWeight: 600,
               padding: '4px 10px',
               borderRadius: '999px',
-              backgroundColor: 'var(--cx-recall-soft)',
-              color: 'var(--cx-recall)',
+              backgroundColor: 'var(--cx-accent-secondary-soft)',
+              color: 'var(--cx-accent-secondary-on-soft)',
             }}
           >
             {stats.tested} / {stats.total} diuji
@@ -296,9 +296,11 @@ export function ActiveRecallView({
                         backgroundColor:
                           confidence === 'clear'
                             ? 'var(--cx-accent-soft)'
-                            : 'var(--cx-recall-soft)',
+                            : 'var(--cx-accent-warm-soft)',
                         color:
-                          confidence === 'clear' ? 'var(--cx-accent)' : 'var(--cx-recall)',
+                          confidence === 'clear'
+                            ? 'var(--cx-accent-on-soft)'
+                            : 'var(--cx-accent-warm-on-soft)',
                       }}
                     >
                       {confidence === 'clear' ? 'Jelas' : 'Masih samar'}
@@ -319,7 +321,7 @@ export function ActiveRecallView({
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '0.55rem',
-                      color: 'var(--cx-recall)',
+                      color: 'var(--cx-accent-secondary-on-soft)',
                       fontWeight: 600,
                       fontSize: 'var(--cx-text-sm)',
                     }}
@@ -392,15 +394,15 @@ export function ActiveRecallView({
                           padding: '0 0.85rem',
                           borderRadius: 'var(--cx-radius-md)',
                           border: `1px solid ${
-                            confidence === 'fuzzy' ? 'var(--cx-recall)' : 'var(--cx-border)'
+                            confidence === 'fuzzy' ? 'var(--cx-accent-warm)' : 'var(--cx-border)'
                           }`,
                           backgroundColor:
                             confidence === 'fuzzy'
-                              ? 'var(--cx-recall-soft)'
+                              ? 'var(--cx-accent-warm-soft)'
                               : 'var(--cx-bg)',
                           color:
                             confidence === 'fuzzy'
-                              ? 'var(--cx-recall)'
+                              ? 'var(--cx-accent-warm-on-soft)'
                               : 'var(--cx-ink-secondary)',
                           fontWeight: 600,
                           fontSize: 'var(--cx-text-sm)',
@@ -427,7 +429,7 @@ export function ActiveRecallView({
                               : 'var(--cx-bg)',
                           color:
                             confidence === 'clear'
-                              ? 'var(--cx-accent)'
+                              ? 'var(--cx-accent-on-soft)'
                               : 'var(--cx-ink-secondary)',
                           fontWeight: 600,
                           fontSize: 'var(--cx-text-sm)',
@@ -482,7 +484,7 @@ export function ActiveRecallView({
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '0.55rem',
-                color: 'var(--cx-recall)',
+                color: 'var(--cx-accent-secondary-on-soft)',
                 fontWeight: 600,
                 fontSize: 'var(--cx-text-sm)',
               }}

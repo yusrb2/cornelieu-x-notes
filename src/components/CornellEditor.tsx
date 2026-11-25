@@ -486,15 +486,15 @@ export function CornellEditor({
                       border: '1px solid var(--cx-border)',
                       backgroundColor:
                         note.status === 'needs_review'
-                          ? 'var(--cx-recall-soft)'
+                          ? 'var(--cx-accent-warm-soft)'
                           : note.status === 'completed'
                             ? 'var(--cx-accent-soft)'
                             : 'var(--cx-surface-subtle)',
                       color:
                         note.status === 'needs_review'
-                          ? 'var(--cx-recall)'
+                          ? 'var(--cx-accent-warm-on-soft)'
                           : note.status === 'completed'
-                            ? 'var(--cx-accent)'
+                            ? 'var(--cx-accent-on-soft)'
                             : 'var(--cx-ink-secondary)',
                       fontWeight: 600,
                       fontSize: '0.75rem',
@@ -1263,7 +1263,7 @@ export function CornellEditor({
                     backgroundColor: active ? 'var(--cx-surface)' : 'transparent',
                     color: active
                       ? item.id === 'recall'
-                        ? 'var(--cx-recall)'
+                        ? 'var(--cx-accent-secondary)'
                         : 'var(--cx-accent)'
                       : 'var(--cx-ink-secondary)',
                     fontWeight: active ? 600 : 500,

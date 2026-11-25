@@ -174,19 +174,19 @@ export function ReviewScheduleSheet({
                       border: `1px solid ${
                         active
                           ? item.id === 'high'
-                            ? 'var(--cx-recall)'
+                            ? 'var(--cx-accent-warm)'
                             : 'var(--cx-accent)'
                           : 'var(--cx-border)'
                       }`,
                       backgroundColor: active
                         ? item.id === 'high'
-                          ? 'var(--cx-recall-soft)'
+                          ? 'var(--cx-accent-warm-soft)'
                           : 'var(--cx-accent-soft)'
                         : 'var(--cx-bg)',
                       color: active
                         ? item.id === 'high'
-                          ? 'var(--cx-recall)'
-                          : 'var(--cx-accent)'
+                          ? 'var(--cx-accent-warm-on-soft)'
+                          : 'var(--cx-accent-on-soft)'
                         : 'var(--cx-ink-secondary)',
                       fontSize: 'var(--cx-text-xs)',
                       fontWeight: active ? 600 : 500,

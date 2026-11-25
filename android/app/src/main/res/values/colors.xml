@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#1F5E5B</color>
-    <color name="colorPrimaryDark">#F7F5F0</color>
-    <color name="colorAccent">#1F5E5B</color>
-    <color name="cxWindowBackground">#F7F5F0</color>
+    <color name="colorPrimary">#4A7C6F</color>
+    <color name="colorPrimaryDark">#F6F8F7</color>
+    <color name="colorAccent">#4A7C6F</color>
+    <color name="cxWindowBackground">#F6F8F7</color>
 </resources>

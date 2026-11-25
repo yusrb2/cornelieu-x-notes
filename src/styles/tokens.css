@@ -2,89 +2,119 @@
 [data-theme='light'] {
   color-scheme: light;
 
-  /* Editorial Warm Paper Surfaces */
-  --cx-bg: #f7f5f0;
-  --cx-surface: #fcfbf8;
-  --cx-surface-subtle: #efece4;
-  --cx-surface-hover: #e7e3d9;
+  /* Light Mode — Soft Botanical & Mist Pastel */
+  --cx-bg: #f6f8f7;
+  --cx-surface: #ffffff;
+  --cx-surface-subtle: #eef3f1;
+  --cx-surface-hover: #e5ece9;
 
   /* Structural Hairlines */
-  --cx-border: #dcd7cc;
-  --cx-border-strong: #c5beb0;
+  --cx-border: #dce5e1;
+  --cx-border-strong: #c3d2cc;
 
-  /* High-Contrast Warm Charcoal Ink (WCAG AA+) */
-  --cx-ink: #1f1e1b;
-  --cx-ink-secondary: #524e46;
-  --cx-ink-muted: #676258;
+  /* Accessible Botanical Slate Text (WCAG AA >= 4.5:1) */
+  --cx-text: #1e2925;
+  --cx-text-muted: #556660;
+  --cx-ink: var(--cx-text);
+  --cx-ink-secondary: #3e504a;
+  --cx-ink-muted: var(--cx-text-muted);
 
-  /* Primary Accent: Deep Study Teal */
-  --cx-accent: #1f5e5b;
-  --cx-accent-soft: rgba(31, 94, 91, 0.09);
-  --cx-accent-ink: #faf9f5;
+  /* Primary Accent — Sage Pastel */
+  --cx-accent: #4a7c6f;
+  --cx-accent-soft: #e2efea;
+  --cx-accent-on-soft: #315b50;
+  --cx-accent-ink: #ffffff;
 
-  /* Functional Recall & Review Accent: Warm Ochre */
-  --cx-recall: #9c5318;
-  --cx-recall-soft: rgba(156, 83, 24, 0.1);
+  /* Functional Secondary Accent — Dusty Periwinkle (Cue & Active Recall) */
+  --cx-accent-secondary: #5b6d92;
+  --cx-accent-secondary-soft: #e7ecf6;
+  --cx-accent-secondary-on-soft: #3f4f70;
+  --cx-accent-secondary-ink: #ffffff;
+
+  /* Functional Warm Accent — Soft Apricot / Sand (Review Queue & Needs Review) */
+  --cx-accent-warm: #9a6b42;
+  --cx-accent-warm-soft: #f7ede2;
+  --cx-accent-warm-on-soft: #78502d;
+  --cx-accent-warm-ink: #ffffff;
+
+  /* Semantic Aliases */
+  --cx-recall: var(--cx-accent-secondary);
+  --cx-recall-soft: var(--cx-accent-secondary-soft);
 
   /* Muted Semantic Danger (Trash Permanent Delete Only) */
-  --cx-danger: #9e382e;
-  --cx-danger-soft: rgba(158, 56, 46, 0.09);
+  --cx-danger: #a84a44;
+  --cx-danger-soft: #f9eae9;
 
   /* Browser & Overlay Surfaces */
-  --cx-selection-bg: rgba(31, 94, 91, 0.18);
-  --cx-backdrop: rgba(31, 30, 27, 0.36);
-  --cx-sheet-shadow: 0 -8px 24px rgba(31, 30, 27, 0.1);
-  --cx-fab-shadow: 0 4px 14px rgba(31, 30, 27, 0.16);
+  --cx-selection-bg: rgba(74, 124, 111, 0.18);
+  --cx-backdrop: rgba(30, 41, 37, 0.34);
+  --cx-sheet-shadow: 0 -8px 24px rgba(30, 41, 37, 0.08);
+  --cx-fab-shadow: 0 4px 14px rgba(30, 41, 37, 0.14);
 
   /* Perceptual Reading Rhythm */
-  --cx-body-lh: 1.62;
+  --cx-body-lh: 1.65;
   --cx-body-tracking: 0em;
 }
 
 [data-theme='dark'] {
   color-scheme: dark;
 
-  /* Calm Study Slate Surfaces */
-  --cx-bg: #151614;
-  --cx-surface: #1c1e1b;
-  --cx-surface-subtle: #232622;
-  --cx-surface-hover: #2c302b;
+  /* Dark Mode — Muted Dusk Pastel */
+  --cx-bg: #141817;
+  --cx-surface: #1b201f;
+  --cx-surface-subtle: #222826;
+  --cx-surface-hover: #2a3230;
 
   /* Structural Hairlines */
-  --cx-border: #2f332e;
-  --cx-border-strong: #434841;
+  --cx-border: #2c3532;
+  --cx-border-strong: #3b4743;
 
-  /* Warm Alabaster Ink (WCAG AA+ without harsh glare) */
-  --cx-ink: #eceae3;
-  --cx-ink-secondary: #b2aea4;
-  --cx-ink-muted: #928e84;
+  /* Calm Mist Ink (WCAG AA >= 4.5:1) */
+  --cx-text: #e7ecea;
+  --cx-text-muted: #9aa8a3;
+  --cx-ink: var(--cx-text);
+  --cx-ink-secondary: #bbc7c3;
+  --cx-ink-muted: var(--cx-text-muted);
 
-  /* Primary Accent */
-  --cx-accent: #5ba8a3;
-  --cx-accent-soft: rgba(91, 168, 163, 0.14);
-  --cx-accent-ink: #111716;
+  /* Primary Accent — Muted Sage Pastel */
+  --cx-accent: #7db3a4;
+  --cx-accent-soft: #21322e;
+  --cx-accent-on-soft: #98c8ba;
+  --cx-accent-ink: #111a18;
 
-  /* Functional Recall & Review Accent */
-  --cx-recall: #de954e;
-  --cx-recall-soft: rgba(222, 149, 78, 0.14);
+  /* Functional Secondary Accent — Muted Periwinkle Pastel */
+  --cx-accent-secondary: #93a6ce;
+  --cx-accent-secondary-soft: #242b3a;
+  --cx-accent-secondary-on-soft: #b2c3e6;
+  --cx-accent-secondary-ink: #121722;
+
+  /* Functional Warm Accent — Muted Sand Pastel */
+  --cx-accent-warm: #d4a373;
+  --cx-accent-warm-soft: #332920;
+  --cx-accent-warm-on-soft: #e2b990;
+  --cx-accent-warm-ink: #1f1710;
+
+  /* Semantic Aliases */
+  --cx-recall: var(--cx-accent-secondary);
+  --cx-recall-soft: var(--cx-accent-secondary-soft);
 
   /* Muted Semantic Danger */
-  --cx-danger: #e07466;
-  --cx-danger-soft: rgba(224, 116, 102, 0.14);
+  --cx-danger: #d9857e;
+  --cx-danger-soft: #342322;
 
   /* Browser & Overlay Surfaces */
-  --cx-selection-bg: rgba(91, 168, 163, 0.24);
-  --cx-backdrop: rgba(10, 11, 10, 0.62);
-  --cx-sheet-shadow: 0 -8px 28px rgba(0, 0, 0, 0.36);
-  --cx-fab-shadow: 0 4px 16px rgba(0, 0, 0, 0.38);
+  --cx-selection-bg: rgba(125, 179, 164, 0.24);
+  --cx-backdrop: rgba(8, 12, 11, 0.64);
+  --cx-sheet-shadow: 0 -8px 28px rgba(0, 0, 0, 0.34);
+  --cx-fab-shadow: 0 4px 16px rgba(0, 0, 0, 0.36);
 
   /* Dark-Mode Perceptual Compensation */
-  --cx-body-lh: 1.66;
-  --cx-body-tracking: 0.008em;
+  --cx-body-lh: 1.68;
+  --cx-body-tracking: 0.006em;
 }
 
 :root {
-  /* Typography Families (100% Local System Editorial Stacks) */
+  /* Typography Families (100% Local Offline Stacks) */
   --cx-font-serif: 'Literata', 'Noto Serif', 'Iowan Old Style', Georgia, Cambria, serif;
   --cx-font-sans: 'Inter', 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --cx-font-mono: 'JetBrains Mono', 'Roboto Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;

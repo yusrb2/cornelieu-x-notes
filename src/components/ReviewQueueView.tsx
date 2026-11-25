@@ -169,7 +169,9 @@ export function ReviewQueueView({
                         flexShrink: 0,
                         fontSize: '0.74rem',
                         fontWeight: 600,
-                        color: dueInfo.isOverdue ? 'var(--cx-recall)' : 'var(--cx-accent)',
+                        color: dueInfo.isOverdue
+                          ? 'var(--cx-accent-warm-on-soft)'
+                          : 'var(--cx-accent-on-soft)',
                       }}
                     >
                       {dueInfo.label}
@@ -193,11 +195,11 @@ export function ReviewQueueView({
                         borderRadius: '999px',
                         backgroundColor:
                           note.review.priority === 'high'
-                            ? 'var(--cx-recall-soft)'
+                            ? 'var(--cx-accent-warm-soft)'
                             : 'var(--cx-surface-subtle)',
                         color:
                           note.review.priority === 'high'
-                            ? 'var(--cx-recall)'
+                            ? 'var(--cx-accent-warm-on-soft)'
                             : 'var(--cx-ink-secondary)',
                         fontWeight: 600,
                       }}

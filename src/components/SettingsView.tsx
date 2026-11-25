@@ -387,7 +387,9 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
                     ? 'var(--cx-danger-soft)'
                     : 'var(--cx-accent-soft)',
                 color:
-                  statusMessage.kind === 'error' ? 'var(--cx-danger)' : 'var(--cx-accent)',
+                  statusMessage.kind === 'error'
+                    ? 'var(--cx-danger)'
+                    : 'var(--cx-accent-on-soft)',
                 fontSize: 'var(--cx-text-xs)',
                 fontWeight: 500,
               }}
@@ -492,7 +494,7 @@ function segmentBtnStyle(active: boolean) {
     borderRadius: 'var(--cx-radius-md)',
     border: `1px solid ${active ? 'var(--cx-accent)' : 'var(--cx-border)'}`,
     backgroundColor: active ? 'var(--cx-accent-soft)' : 'var(--cx-surface)',
-    color: active ? 'var(--cx-accent)' : 'var(--cx-ink-secondary)',
+    color: active ? 'var(--cx-accent-on-soft)' : 'var(--cx-ink-secondary)',
     fontSize: 'var(--cx-text-xs)',
     fontWeight: active ? 600 : 500,
   };

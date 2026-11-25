@@ -48,7 +48,7 @@ export function applyThemeToDom(): void {
 
   const meta = document.querySelector('meta[name="theme-color"]');
   if (meta) {
-    meta.setAttribute('content', resolved === 'dark' ? '#151614' : '#F7F5F0');
+    meta.setAttribute('content', resolved === 'dark' ? '#141817' : '#F6F8F7');
   }
 
   try {

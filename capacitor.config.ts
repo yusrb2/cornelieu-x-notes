@@ -6,7 +6,7 @@ const config: CapacitorConfig = {
   appName: 'Cornelieu X Notes',
   webDir: 'dist',
   android: {
-    backgroundColor: '#F7F5F0',
+    backgroundColor: '#F6F8F7',
     allowMixedContent: false,
   },
   plugins: {
@@ -18,7 +18,7 @@ const config: CapacitorConfig = {
     StatusBar: {
       overlaysWebView: false,
       style: 'LIGHT',
-      backgroundColor: '#F7F5F0',
+      backgroundColor: '#F6F8F7',
     },
   },
 };

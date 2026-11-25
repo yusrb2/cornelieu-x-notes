@@ -97,7 +97,7 @@ export function AppShell({
                   borderRadius: 'var(--cx-radius-md)',
                   border: 'none',
                   backgroundColor: isActive ? 'var(--cx-accent-soft)' : 'transparent',
-                  color: isActive ? 'var(--cx-accent)' : 'var(--cx-ink-secondary)',
+                  color: isActive ? 'var(--cx-accent-on-soft)' : 'var(--cx-ink-secondary)',
                   fontWeight: isActive ? 600 : 500,
                   fontSize: 'var(--cx-text-sm)',
                 }}
@@ -114,8 +114,8 @@ export function AppShell({
                       fontWeight: 600,
                       padding: '1px 7px',
                       borderRadius: '999px',
-                      backgroundColor: 'var(--cx-recall-soft)',
-                      color: 'var(--cx-recall)',
+                      backgroundColor: 'var(--cx-accent-warm-soft)',
+                      color: 'var(--cx-accent-warm-on-soft)',
                     }}
                   >
                     {dueReviewCount}
@@ -231,8 +231,8 @@ export function AppShell({
                       fontWeight: 700,
                       padding: '2px 5px',
                       borderRadius: '999px',
-                      backgroundColor: 'var(--cx-recall)',
-                      color: 'var(--cx-accent-ink)',
+                      backgroundColor: 'var(--cx-accent-warm)',
+                      color: 'var(--cx-accent-warm-ink)',
                     }}
                   >
                     {dueReviewCount > 99 ? '99+' : dueReviewCount}

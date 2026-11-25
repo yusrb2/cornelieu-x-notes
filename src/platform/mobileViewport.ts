@@ -24,7 +24,7 @@ async function syncNativeStatusBar(theme: 'light' | 'dark'): Promise<void> {
       style: theme === 'dark' ? Style.Dark : Style.Light,
     });
     await StatusBar.setBackgroundColor({
-      color: theme === 'dark' ? '#151614' : '#F7F5F0',
+      color: theme === 'dark' ? '#141817' : '#F6F8F7',
     });
   } catch {
     // Ignore on platforms/OS versions where status bar coloring is restricted
