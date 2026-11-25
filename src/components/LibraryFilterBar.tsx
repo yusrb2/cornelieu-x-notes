@@ -248,7 +248,7 @@ function chipStyle(active: boolean) {
     borderRadius: '999px',
     border: `1px solid ${active ? 'var(--cx-accent)' : 'var(--cx-border)'}`,
     backgroundColor: active ? 'var(--cx-accent-soft)' : 'var(--cx-surface)',
-    color: active ? 'var(--cx-accent)' : 'var(--cx-ink-secondary)',
+    color: active ? 'var(--cx-accent-on-soft)' : 'var(--cx-ink-secondary)',
     fontSize: 'var(--cx-text-xs)',
     fontWeight: active ? 600 : 500,
     display: 'inline-flex',

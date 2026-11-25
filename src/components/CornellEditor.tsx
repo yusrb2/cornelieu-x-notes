@@ -75,6 +75,7 @@ export function CornellEditor({
   const [tagDraft, setTagDraft] = useState<string>('');
   const [showFormatBar, setShowFormatBar] = useState<boolean>(false);
   const [showOverflow, setShowOverflow] = useState<boolean>(false);
+  const [mobileSectionFilter, setMobileSectionFilter] = useState<'all' | 'cue' | 'notes'>('all');
 
   const focusedFieldRef = useRef<FocusedField>({
     kind: 'notes',
@@ -84,6 +85,7 @@ export function CornellEditor({
 
   useEffect(() => {
     setMode(initialMode);
+    setMobileSectionFilter('all');
   }, [note.id, initialMode]);
 
   useEffect(() => {
@@ -780,10 +782,61 @@ export function CornellEditor({
           )}
         </div>
 
+        {/* Compact Mobile Quick-Toggle (Semua | Cue | Notes) */}
+        {viewportWidth < 600 && resolvedLayout === 'stacked' && !isFocusMode && (
+          <div
+            role="group"
+            aria-label="Fokus kolom catatan"
+            style={{
+              marginTop: '0.85rem',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '3px',
+              padding: '3px',
+              borderRadius: 'var(--cx-radius-md)',
+              backgroundColor: 'var(--cx-surface-subtle)',
+            }}
+          >
+            {(
+              [
+                { id: 'all', label: 'Semua' },
+                { id: 'cue', label: 'Cue Saja' },
+                { id: 'notes', label: 'Notes Saja' },
+              ] as Array<{ id: 'all' | 'cue' | 'notes'; label: string }>
+            ).map((opt) => {
+              const active = mobileSectionFilter === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setMobileSectionFilter(opt.id)}
+                  aria-pressed={active}
+                  style={{
+                    minHeight: '36px',
+                    padding: '0 10px',
+                    border: 'none',
+                    borderRadius: 'var(--cx-radius-sm)',
+                    backgroundColor: active ? 'var(--cx-surface)' : 'transparent',
+                    color: active
+                      ? opt.id === 'cue'
+                        ? 'var(--cx-accent-secondary-on-soft)'
+                        : 'var(--cx-accent-on-soft)'
+                      : 'var(--cx-ink-secondary)',
+                    fontSize: 'var(--cx-text-xs)',
+                    fontWeight: active ? 600 : 500,
+                  }}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         {/* Cornell Cue + Notes Writing Sheet */}
         <div
           style={{
-            marginTop: '1rem',
+            marginTop: 'var(--cx-section-gap)',
             backgroundColor: 'var(--cx-surface)',
             border: '1px solid var(--cx-border)',
             borderRadius: 'var(--cx-radius-md)',
@@ -794,31 +847,32 @@ export function CornellEditor({
             <div
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'minmax(0, 32%) minmax(0, 68%)',
-                borderBottom: '1.5px solid var(--cx-border-strong)',
+                gridTemplateColumns: 'minmax(0, 35%) minmax(0, 65%)',
+                borderBottom: '1px solid var(--cx-border-strong)',
               }}
             >
               <div
+                className="cx-mono"
                 style={{
-                  padding: '0.55rem 0.9rem',
-                  backgroundColor: 'var(--cx-surface-subtle)',
-                  borderRight: '1.5px solid var(--cx-border-strong)',
+                  padding: '0.6rem var(--cx-cell-pad)',
+                  backgroundColor: 'var(--cx-accent-secondary-soft)',
+                  borderRight: '1px solid var(--cx-border-strong)',
                   fontSize: 'var(--cx-text-xs)',
                   fontWeight: 600,
-                  color: 'var(--cx-ink-secondary)',
+                  color: 'var(--cx-accent-secondary-on-soft)',
                 }}
               >
-                Cue (Kata Kunci & Pertanyaan)
+                Cue · Kata Kunci & Pertanyaan
               </div>
               <div
                 style={{
-                  padding: '0.55rem 1rem',
+                  padding: '0.6rem var(--cx-cell-pad)',
                   fontSize: 'var(--cx-text-xs)',
                   fontWeight: 600,
                   color: 'var(--cx-ink-secondary)',
                 }}
               >
-                Notes (Catatan Utama)
+                Notes · Catatan Utama
               </div>
             </div>
           )}
@@ -832,15 +886,15 @@ export function CornellEditor({
                   key={section.id}
                   style={{
                     display: 'grid',
-                    gridTemplateColumns: 'minmax(0, 32%) minmax(0, 68%)',
+                    gridTemplateColumns: 'minmax(0, 35%) minmax(0, 65%)',
                     borderBottom: isLast ? 'none' : '1px solid var(--cx-border)',
                   }}
                 >
                   <div
                     style={{
-                      padding: '0.9rem',
-                      backgroundColor: 'var(--cx-surface-subtle)',
-                      borderRight: '1.5px solid var(--cx-border-strong)',
+                      padding: 'var(--cx-cell-pad)',
+                      backgroundColor: 'var(--cx-accent-secondary-soft)',
+                      borderRight: '1px solid var(--cx-border-strong)',
                     }}
                   >
                     {canEdit ? (
@@ -850,6 +904,7 @@ export function CornellEditor({
                         placeholder="Kata kunci, istilah, atau pertanyaan pemicu..."
                         ariaLabel={`Kolom Cue bagian ${idx + 1}`}
                         minRows={2}
+                        className="cx-cue-text"
                         inputRef={{
                           get current() {
                             return textareaRefs.current[`cue:${section.id}`] ?? null;
@@ -863,15 +918,14 @@ export function CornellEditor({
                         }}
                         style={{
                           fontSize: 'var(--cx-text-sm)',
-                          fontWeight: 500,
                           color: 'var(--cx-ink)',
                         }}
                       />
                     ) : (
                       <div
+                        className="cx-cue-text"
                         style={{
                           fontSize: 'var(--cx-text-sm)',
-                          fontWeight: 600,
                           color: section.cue.trim() ? 'var(--cx-ink)' : 'var(--cx-ink-muted)',
                           whiteSpace: 'pre-wrap',
                         }}
@@ -884,7 +938,7 @@ export function CornellEditor({
                   <div
                     style={{
                       position: 'relative',
-                      padding: '0.9rem 1.05rem',
+                      padding: 'var(--cx-cell-pad)',
                     }}
                   >
                     {canEdit && !isFocusMode && note.sections.length > 1 && (
@@ -894,10 +948,10 @@ export function CornellEditor({
                         aria-label={`Hapus bagian ${idx + 1}`}
                         style={{
                           position: 'absolute',
-                          top: '4px',
-                          right: '4px',
-                          width: '32px',
-                          height: '32px',
+                          top: '6px',
+                          right: '6px',
+                          width: '34px',
+                          height: '34px',
                           border: 'none',
                           borderRadius: 'var(--cx-radius-sm)',
                           backgroundColor: 'transparent',
@@ -911,178 +965,190 @@ export function CornellEditor({
                       </button>
                     )}
 
-                    {canEdit ? (
-                      <AutoResizeTextarea
-                        value={section.notes}
-                        onInputValue={(notes) => updateSection(section.id, { notes })}
-                        placeholder="Tulis penjelasan, daftar poin, - [ ] tugas, atau ```kode```..."
-                        ariaLabel={`Kolom Notes bagian ${idx + 1}`}
-                        minRows={3}
-                        inputRef={{
-                          get current() {
-                            return textareaRefs.current[`notes:${section.id}`] ?? null;
-                          },
-                          set current(el) {
-                            textareaRefs.current[`notes:${section.id}`] = el;
-                          },
-                        }}
-                        onFocusField={() => {
-                          focusedFieldRef.current = { kind: 'notes', sectionId: section.id };
-                        }}
-                        style={{
-                          fontSize: 'var(--cx-text-base)',
-                          paddingRight: note.sections.length > 1 ? '1.75rem' : 0,
-                        }}
-                      />
-                    ) : (
-                      renderMarkdown(section.notes, {
-                        onToggleCheckbox: (lineIndex) =>
-                          updateSection(section.id, {
-                            notes: toggleChecklistAtLine(section.notes, lineIndex),
-                          }),
-                        onOpenNoteLink: onOpenNoteByTitle,
-                        emptyFallback: 'Belum ada isi catatan.',
-                      })
-                    )}
+                    <div className="cx-measure">
+                      {canEdit ? (
+                        <AutoResizeTextarea
+                          value={section.notes}
+                          onInputValue={(notes) => updateSection(section.id, { notes })}
+                          placeholder="Tulis penjelasan, daftar poin, - [ ] tugas, atau ```kode```..."
+                          ariaLabel={`Kolom Notes bagian ${idx + 1}`}
+                          minRows={3}
+                          inputRef={{
+                            get current() {
+                              return textareaRefs.current[`notes:${section.id}`] ?? null;
+                            },
+                            set current(el) {
+                              textareaRefs.current[`notes:${section.id}`] = el;
+                            },
+                          }}
+                          onFocusField={() => {
+                            focusedFieldRef.current = { kind: 'notes', sectionId: section.id };
+                          }}
+                          style={{
+                            fontSize: 'var(--cx-text-base)',
+                            paddingRight: note.sections.length > 1 ? '1.75rem' : 0,
+                          }}
+                        />
+                      ) : (
+                        renderMarkdown(section.notes, {
+                          onToggleCheckbox: (lineIndex) =>
+                            updateSection(section.id, {
+                              notes: toggleChecklistAtLine(section.notes, lineIndex),
+                            }),
+                          onOpenNoteLink: onOpenNoteByTitle,
+                          emptyFallback: 'Belum ada isi catatan.',
+                        })
+                      )}
+                    </div>
                   </div>
                 </div>
               );
             }
+
+            const showCue = mobileSectionFilter !== 'notes';
+            const showNotes = mobileSectionFilter !== 'cue';
 
             /* Stacked Mobile Portrait Layout */
             return (
               <div
                 key={section.id}
                 style={{
-                  borderBottom: isLast ? 'none' : '1.5px solid var(--cx-border-strong)',
+                  borderBottom: isLast ? 'none' : '1px solid var(--cx-border-strong)',
                 }}
               >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    justifyContent: 'space-between',
-                    gap: '0.5rem',
-                    padding: '0.75rem 0.95rem',
-                    backgroundColor: 'var(--cx-surface-subtle)',
-                    borderBottom: '1px solid var(--cx-border)',
-                  }}
-                >
-                  <div style={{ flex: '1 1 auto', minWidth: 0 }}>
+                {showCue && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      justifyContent: 'space-between',
+                      gap: '0.5rem',
+                      padding: '0.75rem var(--cx-cell-pad)',
+                      backgroundColor: 'var(--cx-accent-secondary-soft)',
+                      borderBottom: showNotes ? '1px solid var(--cx-border)' : 'none',
+                    }}
+                  >
+                    <div style={{ flex: '1 1 auto', minWidth: 0 }}>
+                      <div
+                        className="cx-mono"
+                        style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 600,
+                          color: 'var(--cx-accent-secondary-on-soft)',
+                          marginBottom: '3px',
+                        }}
+                      >
+                        Cue
+                      </div>
+                      {canEdit ? (
+                        <AutoResizeTextarea
+                          value={section.cue}
+                          onInputValue={(cue) => updateSection(section.id, { cue })}
+                          placeholder="Kata kunci atau pertanyaan pemicu..."
+                          ariaLabel={`Cue bagian ${idx + 1}`}
+                          minRows={1}
+                          className="cx-cue-text"
+                          inputRef={{
+                            get current() {
+                              return textareaRefs.current[`cue:${section.id}`] ?? null;
+                            },
+                            set current(el) {
+                              textareaRefs.current[`cue:${section.id}`] = el;
+                            },
+                          }}
+                          onFocusField={() => {
+                            focusedFieldRef.current = { kind: 'cue', sectionId: section.id };
+                          }}
+                          style={{
+                            fontSize: 'var(--cx-text-sm)',
+                          }}
+                        />
+                      ) : (
+                        <div
+                          className="cx-cue-text"
+                          style={{
+                            fontSize: 'var(--cx-text-sm)',
+                            color: section.cue.trim() ? 'var(--cx-ink)' : 'var(--cx-ink-muted)',
+                            whiteSpace: 'pre-wrap',
+                          }}
+                        >
+                          {section.cue.trim() || 'Belum ada cue.'}
+                        </div>
+                      )}
+                    </div>
+
+                    {canEdit && !isFocusMode && note.sections.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeSection(section.id)}
+                        aria-label={`Hapus bagian ${idx + 1}`}
+                        style={{
+                          width: '36px',
+                          height: '36px',
+                          border: 'none',
+                          borderRadius: 'var(--cx-radius-sm)',
+                          backgroundColor: 'transparent',
+                          color: 'var(--cx-ink-muted)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <CloseIcon size={16} />
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {showNotes && (
+                  <div style={{ padding: 'var(--cx-cell-pad)' }}>
                     <div
                       style={{
                         fontSize: '0.72rem',
                         fontWeight: 600,
                         color: 'var(--cx-ink-muted)',
-                        marginBottom: '2px',
+                        marginBottom: '4px',
                       }}
                     >
-                      Cue
+                      Notes
                     </div>
-                    {canEdit ? (
-                      <AutoResizeTextarea
-                        value={section.cue}
-                        onInputValue={(cue) => updateSection(section.id, { cue })}
-                        placeholder="Kata kunci atau pertanyaan pemicu..."
-                        ariaLabel={`Cue bagian ${idx + 1}`}
-                        minRows={1}
-                        inputRef={{
-                          get current() {
-                            return textareaRefs.current[`cue:${section.id}`] ?? null;
-                          },
-                          set current(el) {
-                            textareaRefs.current[`cue:${section.id}`] = el;
-                          },
-                        }}
-                        onFocusField={() => {
-                          focusedFieldRef.current = { kind: 'cue', sectionId: section.id };
-                        }}
-                        style={{
-                          fontSize: 'var(--cx-text-sm)',
-                          fontWeight: 500,
-                        }}
-                      />
-                    ) : (
-                      <div
-                        style={{
-                          fontSize: 'var(--cx-text-sm)',
-                          fontWeight: 600,
-                          color: section.cue.trim() ? 'var(--cx-ink)' : 'var(--cx-ink-muted)',
-                          whiteSpace: 'pre-wrap',
-                        }}
-                      >
-                        {section.cue.trim() || 'Belum ada cue.'}
-                      </div>
-                    )}
+                    <div className="cx-measure">
+                      {canEdit ? (
+                        <AutoResizeTextarea
+                          value={section.notes}
+                          onInputValue={(notes) => updateSection(section.id, { notes })}
+                          placeholder="Tulis poin detail, - [ ] checklist, > kutipan, atau ```kode```..."
+                          ariaLabel={`Notes bagian ${idx + 1}`}
+                          minRows={3}
+                          inputRef={{
+                            get current() {
+                              return textareaRefs.current[`notes:${section.id}`] ?? null;
+                            },
+                            set current(el) {
+                              textareaRefs.current[`notes:${section.id}`] = el;
+                            },
+                          }}
+                          onFocusField={() => {
+                            focusedFieldRef.current = { kind: 'notes', sectionId: section.id };
+                          }}
+                          style={{
+                            fontSize: 'var(--cx-text-base)',
+                          }}
+                        />
+                      ) : (
+                        renderMarkdown(section.notes, {
+                          onToggleCheckbox: (lineIndex) =>
+                            updateSection(section.id, {
+                              notes: toggleChecklistAtLine(section.notes, lineIndex),
+                            }),
+                          onOpenNoteLink: onOpenNoteByTitle,
+                          emptyFallback: 'Belum ada isi catatan.',
+                        })
+                      )}
+                    </div>
                   </div>
-
-                  {canEdit && !isFocusMode && note.sections.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeSection(section.id)}
-                      aria-label={`Hapus bagian ${idx + 1}`}
-                      style={{
-                        width: '36px',
-                        height: '36px',
-                        border: 'none',
-                        borderRadius: 'var(--cx-radius-sm)',
-                        backgroundColor: 'transparent',
-                        color: 'var(--cx-ink-muted)',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0,
-                      }}
-                    >
-                      <CloseIcon size={16} />
-                    </button>
-                  )}
-                </div>
-
-                <div style={{ padding: '0.85rem 0.95rem 1rem' }}>
-                  <div
-                    style={{
-                      fontSize: '0.72rem',
-                      fontWeight: 600,
-                      color: 'var(--cx-ink-muted)',
-                      marginBottom: '4px',
-                    }}
-                  >
-                    Notes
-                  </div>
-                  {canEdit ? (
-                    <AutoResizeTextarea
-                      value={section.notes}
-                      onInputValue={(notes) => updateSection(section.id, { notes })}
-                      placeholder="Tulis poin detail, - [ ] checklist, > kutipan, atau ```kode```..."
-                      ariaLabel={`Notes bagian ${idx + 1}`}
-                      minRows={3}
-                      inputRef={{
-                        get current() {
-                          return textareaRefs.current[`notes:${section.id}`] ?? null;
-                        },
-                        set current(el) {
-                          textareaRefs.current[`notes:${section.id}`] = el;
-                        },
-                      }}
-                      onFocusField={() => {
-                        focusedFieldRef.current = { kind: 'notes', sectionId: section.id };
-                      }}
-                      style={{
-                        fontSize: 'var(--cx-text-base)',
-                      }}
-                    />
-                  ) : (
-                    renderMarkdown(section.notes, {
-                      onToggleCheckbox: (lineIndex) =>
-                        updateSection(section.id, {
-                          notes: toggleChecklistAtLine(section.notes, lineIndex),
-                        }),
-                      onOpenNoteLink: onOpenNoteByTitle,
-                      emptyFallback: 'Belum ada isi catatan.',
-                    })
-                  )}
-                </div>
+                )}
               </div>
             );
           })}
@@ -1098,9 +1164,9 @@ export function CornellEditor({
                   minHeight: '48px',
                   border: 'none',
                   backgroundColor: 'transparent',
-                  color: 'var(--cx-accent)',
+                  color: 'var(--cx-accent-on-soft)',
                   fontSize: 'var(--cx-text-sm)',
-                  fontWeight: 500,
+                  fontWeight: 600,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1113,59 +1179,61 @@ export function CornellEditor({
             </div>
           )}
 
-          {/* Anchored Summary Closure Box */}
+          {/* Anchored Summary Closure Box (Soft Botanical Surface) */}
           <section
             aria-label="Ringkasan catatan"
             style={{
-              borderTop: '2px solid var(--cx-border-strong)',
-              backgroundColor: 'var(--cx-surface)',
-              padding: '1rem',
+              borderTop: '1.5px solid var(--cx-border-strong)',
+              backgroundColor: 'var(--cx-surface-subtle)',
+              padding: 'var(--cx-cell-pad)',
             }}
           >
-            <h3
-              className="cx-heading"
-              style={{
-                margin: 0,
-                fontSize: 'var(--cx-text-base)',
-                fontWeight: 600,
-                color: 'var(--cx-ink)',
-                marginBottom: '0.45rem',
-              }}
-            >
-              Ringkasan
-            </h3>
-            {canEdit ? (
-              <AutoResizeTextarea
-                value={note.summary}
-                onInputValue={(summary) => commitUpdate({ summary })}
-                placeholder="Tulis rangkuman inti dalam 1–3 kalimat untuk mengunci pemahaman..."
-                ariaLabel="Ringkasan catatan"
-                minRows={2}
-                inputRef={{
-                  get current() {
-                    return textareaRefs.current.summary ?? null;
-                  },
-                  set current(el) {
-                    textareaRefs.current.summary = el;
-                  },
-                }}
-                onFocusField={() => {
-                  focusedFieldRef.current = { kind: 'summary' };
-                }}
+            <div className="cx-measure">
+              <h3
+                className="cx-heading"
                 style={{
+                  margin: 0,
                   fontSize: 'var(--cx-text-base)',
+                  fontWeight: 600,
+                  color: 'var(--cx-ink)',
+                  marginBottom: '0.45rem',
                 }}
-              />
-            ) : (
-              renderMarkdown(note.summary, {
-                onToggleCheckbox: (lineIndex) =>
-                  commitUpdate({
-                    summary: toggleChecklistAtLine(note.summary, lineIndex),
-                  }),
-                onOpenNoteLink: onOpenNoteByTitle,
-                emptyFallback: 'Belum ada ringkasan penutup.',
-              })
-            )}
+              >
+                Ringkasan
+              </h3>
+              {canEdit ? (
+                <AutoResizeTextarea
+                  value={note.summary}
+                  onInputValue={(summary) => commitUpdate({ summary })}
+                  placeholder="Tulis rangkuman inti dalam 1–3 kalimat untuk mengunci pemahaman..."
+                  ariaLabel="Ringkasan catatan"
+                  minRows={2}
+                  inputRef={{
+                    get current() {
+                      return textareaRefs.current.summary ?? null;
+                    },
+                    set current(el) {
+                      textareaRefs.current.summary = el;
+                    },
+                  }}
+                  onFocusField={() => {
+                    focusedFieldRef.current = { kind: 'summary' };
+                  }}
+                  style={{
+                    fontSize: 'var(--cx-text-base)',
+                  }}
+                />
+              ) : (
+                renderMarkdown(note.summary, {
+                  onToggleCheckbox: (lineIndex) =>
+                    commitUpdate({
+                      summary: toggleChecklistAtLine(note.summary, lineIndex),
+                    }),
+                  onOpenNoteLink: onOpenNoteByTitle,
+                  emptyFallback: 'Belum ada ringkasan penutup.',
+                })
+              )}
+            </div>
           </section>
         </div>
 

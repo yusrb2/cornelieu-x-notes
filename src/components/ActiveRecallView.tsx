@@ -270,6 +270,9 @@ export function ActiveRecallView({
                     justifyContent: 'space-between',
                     gap: '0.75rem',
                     marginBottom: '0.75rem',
+                    padding: '0.65rem 0.85rem',
+                    borderRadius: 'var(--cx-radius-md)',
+                    backgroundColor: 'var(--cx-accent-secondary-soft)',
                   }}
                 >
                   <h2
