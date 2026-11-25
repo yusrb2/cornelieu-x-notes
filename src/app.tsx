@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'preact/hooks';
 import { AppShell } from './components/AppShell';
-import { initThemeListener, resolvedThemeSignal, setThemeSettings, themeModeSignal, type TabId } from './state/theme';
+import {
+  activeNotesListSignal,
+  dueReviewCountSignal,
+  initStore,
+  isHydratedSignal,
+  prefsSignal,
+  updatePreferencesAction,
+} from './state/store';
+import { initThemeListener, resolvedThemeSignal, type TabId } from './state/theme';
 
 const TAB_TITLES: Record<TabId, string> = {
   notes: 'Cornelieu X Notes',
@@ -12,19 +20,28 @@ const TAB_TITLES: Record<TabId, string> = {
 export function App() {
   const [activeTab, setActiveTab] = useState<TabId>('notes');
 
-  useEffect(() => initThemeListener(), []);
+  useEffect(() => {
+    const cleanupTheme = initThemeListener();
+    void initStore();
+    return cleanupTheme;
+  }, []);
+
+  const hydrated = isHydratedSignal.value;
+  const activeNotes = activeNotesListSignal.value;
+  const dueCount = dueReviewCountSignal.value;
 
   return (
     <AppShell
       activeTab={activeTab}
       onSelectTab={setActiveTab}
       viewTitle={TAB_TITLES[activeTab]}
+      dueReviewCount={dueCount}
       headerRight={
         <button
           type="button"
           className="cx-touch cx-interactive"
           onClick={() =>
-            setThemeSettings({
+            void updatePreferencesAction({
               themeMode: resolvedThemeSignal.value === 'dark' ? 'light' : 'dark',
             })
           }
@@ -39,7 +56,7 @@ export function App() {
           }}
           aria-label="Ubah tema terang atau gelap"
         >
-          {themeModeSignal.value === 'dark' || resolvedThemeSignal.value === 'dark'
+          {prefsSignal.value.themeMode === 'dark' || resolvedThemeSignal.value === 'dark'
             ? 'Mode Terang'
             : 'Mode Gelap'}
         </button>
@@ -56,9 +73,16 @@ export function App() {
         >
           {TAB_TITLES[activeTab]}
         </h2>
-        <p style={{ marginTop: '0.5rem', color: 'var(--cx-ink-secondary)', fontSize: 'var(--cx-text-sm)' }}>
-          Permukaan kertas editorial hangat dan tata letak adaptif siap digunakan. Penyimpanan
-          IndexedDB dan editor metode Cornell akan disambungkan pada tahap berikutnya.
+        <p
+          style={{
+            marginTop: '0.5rem',
+            color: 'var(--cx-ink-secondary)',
+            fontSize: 'var(--cx-text-sm)',
+          }}
+        >
+          {hydrated
+            ? `${activeNotes.length} catatan aktif tersimpan lokal di IndexedDB.`
+            : 'Membuka penyimpanan lokal...'}
         </p>
       </section>
     </AppShell>
