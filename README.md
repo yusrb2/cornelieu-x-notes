@@ -3,7 +3,7 @@
   <h1>Cornelieu X Notes</h1>
   <p><strong>100% local-first Cornell note-taking &amp; active recall study notebook for Android and the web.</strong></p>
   <p>
-    <code>com.cornelieux.notes</code> · Offline-First (IndexedDB + Capacitor 8) · Bilingual (<code>id</code> / <code>en</code>) · GNU GPL-3.0
+    Live PWA: <a href="https://cornelieu.pages.dev">https://cornelieu.pages.dev</a> · Android ID: <code>com.cornelieux.notes</code> · Bilingual (<code>id</code> / <code>en</code>) · GNU GPL-3.0
   </p>
 </div>
 
@@ -37,6 +37,7 @@ Every note, *Cue / Notes / Summary* section, notebook, tag, bidirectional link, 
 | Layer | Technology & Implementation Details |
 | :--- | :--- |
 | **UI & State** | **Vite 6**, **TypeScript**, **Preact 10**, and **`@preact/signals`** with route/view code splitting (`ActiveRecallView`, `ReviewQueueView`, `SettingsView`) for fast cold starts and low memory footprint. |
+| **Offline PWA Engine** | **`vite-plugin-pwa`** (Workbox `generateSW`, `registerType: 'prompt'`) precaching JS, CSS, HTML, bundled `.woff2` fonts, and PNG icons, paired with a non-intrusive update banner ([src/components/PwaUpdateBanner.tsx](src/components/PwaUpdateBanner.tsx)) and install helper ([src/platform/pwa.ts](src/platform/pwa.ts)). Automatically disabled inside native Capacitor shells. |
 | **Color System (*Pastel Clean*)** | **Tailwind CSS v4** + semantic `--cx-*` CSS custom properties tuned for WCAG AA (`>= 4.5:1`) readability:<br>• **Light Mode (*Soft Botanical & Mist Pastel*)**: bg `#F6F8F7`, surface `#FFFFFF`, subtle `#EEF3F1`, border `#DCE5E1`, ink `#1E2925` / `#556660`, primary Sage `#4A7C6F` (`#E2EFEA` soft), secondary Dusty Periwinkle `#5B6D92` (`#E7ECF6` soft for *Cue* & *Recall*), warm Sand `#9A6B42` (`#F7EDE2` soft for *Review* cues).<br>• **Dark Mode (*Muted Dusk Pastel*)**: bg `#141817`, surface `#1B201F` / `#222826`, ink `#E7ECEA` / `#9AA8A3`, desaturated Sage `#7DB3A4`, Periwinkle `#93A6CE`, Sand `#D4A373`. |
 | **Bundled Editorial Typography** | Offline Latin `.woff2` font subsets bundled in `public/fonts/`: **Newsreader** (`600`) for headings, **Plus Jakarta Sans** (`400–700`, `line-height: 1.65`) for prose and summaries, and **JetBrains Mono** (`400–600`, tabular numerals) for *Cues*, metadata, and code blocks—paired with fluid `clamp()` sizing and a user-configurable `90%`–`125%` scale. |
 | **Local Storage** | **IndexedDB** via **`idb`** (`cornelieu-x-notes-db`) across three object stores (`notes`, `notebooks`, `preferences`), featuring `350ms` debounced autosave and transactional notebook detachment and backup restoration. |
@@ -82,17 +83,19 @@ cornelieu-x-notes/
 │   └── release.yml           # Automated CI verification, signed APK build & GitHub Release workflow
 ├── android/                  # Capacitor-generated Android Gradle project (signing + R8/ProGuard)
 ├── public/
-│   ├── cornelieu-icon.png    # 1024x1024 brand mark, favicon-32.png, apple-touch-icon.png
+│   ├── _headers              # Cloudflare Pages security headers & cache-control policies
+│   ├── _redirects            # Cloudflare Pages SPA fallback (`/* /index.html 200`)
+│   ├── cornelieu-icon.png    # Brand icons (`favicon-32.png`, `apple-touch-icon.png`, `pwa-*.png`)
 │   └── fonts/                # Bundled offline .woff2 fonts (Newsreader, Plus Jakarta Sans, JetBrains Mono)
 ├── src/
-│   ├── components/           # Adaptive shell, CornellEditor, ActiveRecallView, SearchView, ReviewQueue, Settings
+│   ├── components/           # Adaptive shell, CornellEditor, ActiveRecallView, PwaUpdateBanner, Settings
 │   ├── data/                 # Bilingual Cornell quick templates (templates.ts)
 │   ├── db/                   # IndexedDB schema, CRUD repositories, localized seed, backup restore
 │   ├── i18n/                 # Reactive offline localization engine + id/en dictionaries
-│   ├── platform/             # visualViewport, orientation, virtual keyboard, and StatusBar sync
+│   ├── platform/             # Mobile viewport/keyboard sync (`mobileViewport.ts`) & PWA lifecycle (`pwa.ts`)
 │   ├── state/                # Global state store (@preact/signals) & theme manager
 │   ├── styles/               # @font-face rules, Pastel Clean design tokens, and responsive CSS
-│   ├── test/                 # i18n & localization parity tests (i18n.test.ts)
+│   ├── test/                 # i18n parity tests (`i18n.test.ts`) & PWA unit tests (`pwa.test.ts`)
 │   ├── types/                # TypeScript domain interfaces
 │   ├── utils/                # Layout breakpoints, safe Markdown renderer, search, SRS, export/import
 │   ├── app.tsx               # Root app workspace, three-zone desktop layout, and quick language switcher
@@ -144,6 +147,26 @@ cd android
 ```
 
 On Windows PowerShell or CMD, substitute `.\gradlew.bat assembleDebug` or `.\gradlew.bat bundleRelease`.
+
+---
+
+## Web App (PWA) & Cloudflare Pages Deployment
+
+Cornelieu X Notes is published as a 100% offline-capable Progressive Web App at **[https://cornelieu.pages.dev](https://cornelieu.pages.dev)**:
+
+- **Full Offline Precaching**: Powered by `vite-plugin-pwa` (Workbox `generateSW`), every compiled asset, font, and icon is precached for offline launch on desktop browsers, Android Chrome, and iOS Safari.
+- **Standalone Installation & Non-Intrusive Updates**: Browsers supporting `beforeinstallprompt` show an **Install App** control in Settings (with Safari Add-to-Home-Screen guidance on iOS), and service worker updates surface a gentle prompt without clearing local IndexedDB notes.
+- **Capacitor Coexistence**: `initPwa()` in [src/platform/pwa.ts](src/platform/pwa.ts) skips Service Worker registration when running inside native Capacitor (`Capacitor.isNativePlatform()`), keeping `npx cap sync android` cleanly isolated.
+
+### Deploying to Cloudflare Pages
+
+1. Connect `https://github.com/yusrb2/cornelieu-x-notes` in the Cloudflare Dashboard under **Workers & Pages -> Create -> Pages**.
+2. Use the following build settings:
+   - **Project name**: `cornelieu`
+   - **Production branch**: `main`
+   - **Build command**: `npm run build`
+   - **Build output directory**: `dist`
+3. Cloudflare Pages automatically applies [public/_redirects](public/_redirects) (`/* /index.html 200` SPA fallback) and [public/_headers](public/_headers) (strict security headers, immutable caching for `/assets/*` and `/fonts/*`, and `no-cache` for `/index.html`, `/sw.js`, and `/manifest.webmanifest`).
 
 ---
 

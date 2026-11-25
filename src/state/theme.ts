@@ -46,10 +46,10 @@ export function applyThemeToDom(): void {
   root.dataset.theme = resolved;
   root.style.setProperty('--cx-font-scale', String(scale));
 
-  const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) {
-    meta.setAttribute('content', resolved === 'dark' ? '#141817' : '#F6F8F7');
-  }
+  const color = resolved === 'dark' ? '#141817' : '#F6F8F7';
+  document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
+    meta.setAttribute('content', color);
+  });
 
   try {
     window.localStorage.setItem(THEME_CACHE_KEY, themeModeSignal.value);

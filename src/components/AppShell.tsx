@@ -67,7 +67,7 @@ export function AppShell({
       <aside className="cx-nav-rail" aria-label={t('nav.mainAria')}>
         <div className="cx-rail-brand-compact">
           <img
-            src="./cornelieu-icon.png"
+            src="/cornelieu-icon.png"
             alt={t('app.name')}
             width={40}
             height={40}
@@ -85,7 +85,7 @@ export function AppShell({
         <div className="cx-rail-brand-full">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
             <img
-              src="./cornelieu-icon.png"
+              src="/cornelieu-icon.png"
               alt=""
               width={36}
               height={36}
@@ -204,7 +204,7 @@ export function AppShell({
               >
                 <div style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                   <img
-                    src="./cornelieu-icon.png"
+                    src="/cornelieu-icon.png"
                     alt=""
                     width={28}
                     height={28}

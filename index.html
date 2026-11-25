@@ -6,22 +6,55 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#F6F8F7" />
+    <meta name="theme-color" content="#F6F8F7" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#141817" media="(prefers-color-scheme: dark)" />
     <meta name="color-scheme" content="light dark" />
     <title>Cornelieu X Notes</title>
-    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" />
-    <link rel="icon" type="image/png" sizes="1024x1024" href="./cornelieu-icon.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png" />
+    <meta
+      name="description"
+      content="Local-first Cornell note-taking app with active recall and spaced repetition."
+    />
+    <meta name="application-name" content="Cornelieu X Notes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Cornelieu" />
+    <link rel="canonical" href="https://cornelieu.pages.dev/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://cornelieu.pages.dev/" />
+    <meta property="og:site_name" content="Cornelieu X Notes" />
+    <meta
+      property="og:title"
+      content="Cornelieu X Notes — Offline Cornell Note-Taking &amp; Active Recall"
+    />
+    <meta
+      property="og:description"
+      content="Local-first Cornell note-taking app with active recall and spaced repetition."
+    />
+    <meta property="og:image" content="https://cornelieu.pages.dev/pwa-512x512.png" />
+    <meta name="twitter:card" content="summary" />
+    <meta
+      name="twitter:title"
+      content="Cornelieu X Notes — Offline Cornell Note-Taking &amp; Active Recall"
+    />
+    <meta
+      name="twitter:description"
+      content="Local-first Cornell note-taking app with active recall and spaced repetition."
+    />
+    <meta name="twitter:image" content="https://cornelieu.pages.dev/pwa-512x512.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="1024x1024" href="/cornelieu-icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link
       rel="preload"
-      href="./fonts/plus-jakarta-sans-latin.woff2"
+      href="/fonts/plus-jakarta-sans-latin.woff2"
       as="font"
       type="font/woff2"
       crossorigin
     />
     <link
       rel="preload"
-      href="./fonts/newsreader-600-latin.woff2"
+      href="/fonts/newsreader-600-latin.woff2"
       as="font"
       type="font/woff2"
       crossorigin
@@ -37,8 +70,11 @@
               window.matchMedia('(prefers-color-scheme: dark)').matches);
           var theme = isDark ? 'dark' : 'light';
           document.documentElement.dataset.theme = theme;
-          var meta = document.querySelector('meta[name="theme-color"]');
-          if (meta) meta.setAttribute('content', isDark ? '#141817' : '#F6F8F7');
+          var metas = document.querySelectorAll('meta[name="theme-color"]');
+          var color = isDark ? '#141817' : '#F6F8F7';
+          for (var i = 0; i < metas.length; i++) {
+            metas[i].setAttribute('content', color);
+          }
         } catch (e) {}
       })();
     </script>

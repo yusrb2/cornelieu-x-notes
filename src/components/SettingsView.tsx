@@ -3,6 +3,16 @@ import { restoreBackup, type RestoreMode } from '../db/backupRepository';
 import { collectAllTags } from '../db/notesRepository';
 import { formatLocaleNumber, localeSignal, t, type Locale } from '../i18n';
 import {
+  applyPwaUpdate,
+  promptPwaInstall,
+  pwaCanInstallSignal,
+  pwaIsInstalledSignal,
+  pwaIsIosSafariSignal,
+  pwaIsNativeSignal,
+  pwaOfflineReadySignal,
+  pwaUpdateAvailableSignal,
+} from '../platform/pwa';
+import {
   activeNotesListSignal,
   archivedNotesSignal,
   createNewNoteAction,
@@ -21,7 +31,7 @@ import {
   parseAndValidateBackup,
   triggerFileDownload,
 } from '../utils/exportImport';
-import { DownloadIcon, UploadIcon } from './Icons';
+import { CheckIcon, DownloadIcon, ReviewIcon, UploadIcon } from './Icons';
 
 export interface SettingsViewProps {
   onOpenImportedNote: (id: string) => void;
@@ -475,6 +485,114 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
         </div>
       </section>
 
+      {/* Offline Web App & Installation (PWA) */}
+      {!pwaIsNativeSignal.value && (
+        <section aria-label={t('pwa.sectionAria')}>
+          <h2
+            className="cx-heading"
+            style={{
+              margin: 0,
+              paddingBottom: '0.45rem',
+              borderBottom: '1px solid var(--cx-border-strong)',
+              fontSize: 'var(--cx-text-base)',
+              fontWeight: 600,
+            }}
+          >
+            {t('pwa.sectionHeading')}
+          </h2>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.9rem' }}>
+            <div
+              style={{
+                padding: '0.7rem 0.85rem',
+                borderRadius: 'var(--cx-radius-md)',
+                border: '1px solid var(--cx-border)',
+                backgroundColor: pwaOfflineReadySignal.value || pwaIsInstalledSignal.value
+                  ? 'var(--cx-accent-soft)'
+                  : 'var(--cx-surface-subtle)',
+                color: pwaOfflineReadySignal.value || pwaIsInstalledSignal.value
+                  ? 'var(--cx-accent-on-soft)'
+                  : 'var(--cx-ink-secondary)',
+                fontSize: 'var(--cx-text-xs)',
+                fontWeight: 500,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+              }}
+            >
+              <CheckIcon size={16} />
+              <span>
+                {pwaIsInstalledSignal.value
+                  ? t('pwa.statusInstalled')
+                  : pwaOfflineReadySignal.value
+                    ? t('pwa.statusOfflineReady')
+                    : t('pwa.statusBrowser')}
+              </span>
+            </div>
+
+            {pwaUpdateAvailableSignal.value && (
+              <button
+                type="button"
+                className="cx-interactive"
+                onClick={() => void applyPwaUpdate()}
+                style={{
+                  ...actionRowStyle(),
+                  borderColor: 'var(--cx-accent)',
+                  backgroundColor: 'var(--cx-accent-soft)',
+                  color: 'var(--cx-accent-on-soft)',
+                }}
+              >
+                <ReviewIcon size={18} />
+                <div style={{ flex: '1 1 auto' }}>
+                  <div style={{ fontWeight: 600, fontSize: 'var(--cx-text-sm)' }}>
+                    {t('pwa.updateAvailableTitle')}
+                  </div>
+                  <div style={{ fontSize: 'var(--cx-text-xs)', opacity: 0.88 }}>
+                    {t('pwa.updateAvailableDesc')}
+                  </div>
+                </div>
+                <span style={{ fontWeight: 600, fontSize: 'var(--cx-text-xs)' }}>
+                  {t('pwa.updateNowBtn')}
+                </span>
+              </button>
+            )}
+
+            {!pwaIsInstalledSignal.value && (
+              pwaCanInstallSignal.value ? (
+                <button
+                  type="button"
+                  className="cx-interactive"
+                  onClick={() => void promptPwaInstall()}
+                  style={actionRowStyle()}
+                >
+                  <DownloadIcon size={18} />
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 'var(--cx-text-sm)' }}>
+                      {t('pwa.installButton')}
+                    </div>
+                    <div style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-muted)' }}>
+                      {t('pwa.installDesc')}
+                    </div>
+                  </div>
+                </button>
+              ) : (
+                <div
+                  style={{
+                    fontSize: 'var(--cx-text-xs)',
+                    color: 'var(--cx-ink-muted)',
+                    lineHeight: 1.55,
+                  }}
+                >
+                  {pwaIsIosSafariSignal.value
+                    ? t('pwa.iosInstallHint')
+                    : t('pwa.manualInstallHint')}
+                </div>
+              )
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Local Storage Stats & About */}
       <section aria-label={t('settings.aboutAria')}>
         <h2
@@ -543,7 +661,7 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
           }}
         >
           <img
-            src="./cornelieu-icon.png"
+            src="/cornelieu-icon.png"
             alt={t('app.name')}
             width={40}
             height={40}

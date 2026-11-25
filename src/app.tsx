@@ -5,6 +5,7 @@ import { FolderIcon, PlusIcon, RestoreIcon, TrashIcon } from './components/Icons
 import { LibraryFilterBar } from './components/LibraryFilterBar';
 import { NotebookManagerSheet } from './components/NotebookManagerSheet';
 import { NoteListView } from './components/NoteListView';
+import { PwaUpdateBanner } from './components/PwaUpdateBanner';
 import { RelatedNotesSheet } from './components/RelatedNotesSheet';
 import { ReviewScheduleSheet } from './components/ReviewScheduleSheet';
 import { SearchView } from './components/SearchView';
@@ -311,6 +312,7 @@ export function App() {
           onExitRecall={() => setReviewRecallNoteId(null)}
         />
         <UndoSnackbar aboveEditorBar />
+        <PwaUpdateBanner aboveEditorBar />
       </>
     );
   }
@@ -350,6 +352,7 @@ export function App() {
           onClose={() => setReviewSheetOpen(false)}
         />
         <UndoSnackbar aboveEditorBar />
+        <PwaUpdateBanner aboveEditorBar />
       </>
     );
   }
@@ -1020,6 +1023,7 @@ export function App() {
       />
 
       <UndoSnackbar aboveEditorBar={Boolean(activeNote && isThreeZoneActive)} />
+      <PwaUpdateBanner aboveEditorBar={Boolean(activeNote && isThreeZoneActive)} />
     </AppShell>
   );
 }
