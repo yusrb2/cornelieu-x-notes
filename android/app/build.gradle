@@ -1,5 +1,24 @@
 apply plugin: 'com.android.application'
 
+def appVersionCode = (System.getenv("APP_VERSION_CODE")?.trim() ?: "1").toInteger()
+def appVersionName = (System.getenv("APP_VERSION_NAME")?.trim() ?: "1.0.0")
+
+def releaseKeystorePath = System.getenv("KEYSTORE_PATH")?.trim()
+def releaseKeystorePassword = System.getenv("KEYSTORE_PASSWORD")
+def releaseKeyAlias = System.getenv("KEY_ALIAS")?.trim()
+def releaseKeyPassword = System.getenv("KEY_PASSWORD")
+def hasReleaseKeystore = Boolean.valueOf(
+    releaseKeystorePath != null &&
+    !releaseKeystorePath.isEmpty() &&
+    file(releaseKeystorePath).exists() &&
+    releaseKeystorePassword != null &&
+    !releaseKeystorePassword.isEmpty() &&
+    releaseKeyAlias != null &&
+    !releaseKeyAlias.isEmpty() &&
+    releaseKeyPassword != null &&
+    !releaseKeyPassword.isEmpty()
+)
+
 android {
     namespace = "com.cornelieux.notes"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -7,8 +26,8 @@ android {
         applicationId "com.cornelieux.notes"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode appVersionCode
+        versionName appVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -16,10 +35,22 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        if (hasReleaseKeystore) {
+            release {
+                storeFile file(releaseKeystorePath)
+                storePassword releaseKeystorePassword
+                keyAlias releaseKeyAlias
+                keyPassword releaseKeyPassword
+            }
+        }
+    }
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig hasReleaseKeystore ? signingConfigs.release : signingConfigs.debug
         }
     }
 }

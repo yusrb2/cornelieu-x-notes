@@ -14,3 +14,9 @@ android/build/
 android/app/build/
 android/local.properties
 android/capacitor-cordova-android-plugins/build/
+
+# Android release signing credentials & keystores (NEVER commit)
+*.jks
+*.keystore
+keystore.properties
+release-artifacts/

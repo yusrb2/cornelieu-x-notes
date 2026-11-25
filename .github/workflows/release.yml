@@ -1,0 +1,146 @@
+name: Release Android APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release version tag (e.g. v1.0.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build Signed APK & Publish Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Resolve release version metadata
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            RELEASE_TAG="${{ inputs.tag }}"
+          else
+            RELEASE_TAG="${GITHUB_REF_NAME}"
+          fi
+
+          APP_VERSION_NAME="${RELEASE_TAG#v}"
+          BASE_VER="${APP_VERSION_NAME%%-*}"
+          if [[ "${BASE_VER}" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+            MAJOR="${BASH_REMATCH[1]}"
+            MINOR="${BASH_REMATCH[2]}"
+            PATCH="${BASH_REMATCH[3]}"
+            APP_VERSION_CODE=$(( 10#${MAJOR} * 10000 + 10#${MINOR} * 100 + 10#${PATCH} ))
+          else
+            APP_VERSION_CODE="${GITHUB_RUN_NUMBER}"
+          fi
+
+          echo "RELEASE_TAG=${RELEASE_TAG}" >> "$GITHUB_ENV"
+          echo "APP_VERSION_NAME=${APP_VERSION_NAME}" >> "$GITHUB_ENV"
+          echo "APP_VERSION_CODE=${APP_VERSION_CODE}" >> "$GITHUB_ENV"
+
+          echo "Resolved RELEASE_TAG=${RELEASE_TAG}, APP_VERSION_NAME=${APP_VERSION_NAME}, APP_VERSION_CODE=${APP_VERSION_CODE}"
+
+      - name: Validate Android signing secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          MISSING=0
+          for var in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!var}" ]; then
+              echo "::error::Missing required GitHub repository secret: ${var}"
+              MISSING=1
+            fi
+          done
+          if [ "$MISSING" -ne 0 ]; then
+            echo "Configure all 4 Android signing secrets in Settings -> Secrets and variables -> Actions before creating a release."
+            exit 1
+          fi
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Set up JDK 21 (Temurin)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Install dependencies, typecheck, test, build, and sync Android
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
+          npm run build
+          npx cap sync android
+
+      - name: Decode Android release keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '\n\r ' | base64 --decode > "${RUNNER_TEMP}/cornelieu-release.jks"
+          if [ ! -s "${RUNNER_TEMP}/cornelieu-release.jks" ]; then
+            echo "::error::Decoded release keystore is empty."
+            exit 1
+          fi
+          chmod +x android/gradlew
+
+      - name: Build signed release APK
+        working-directory: android
+        env:
+          KEYSTORE_PATH: ${{ runner.temp }}/cornelieu-release.jks
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          APP_VERSION_NAME: ${{ env.APP_VERSION_NAME }}
+          APP_VERSION_CODE: ${{ env.APP_VERSION_CODE }}
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Package release APK and SHA-256 checksums
+        run: |
+          mkdir -p release-artifacts
+          APK_OUT="release-artifacts/Cornelieu-X-Notes-${RELEASE_TAG}-release.apk"
+          cp android/app/build/outputs/apk/release/app-release.apk "${APK_OUT}"
+          (
+            cd release-artifacts
+            sha256sum "Cornelieu-X-Notes-${RELEASE_TAG}-release.apk" > SHA256SUMS.txt
+          )
+          cat release-artifacts/SHA256SUMS.txt
+
+      - name: Remove temporary keystore from runner
+        if: always()
+        run: rm -f "${RUNNER_TEMP}/cornelieu-release.jks"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: Cornelieu X Notes ${{ env.RELEASE_TAG }}
+          generate_release_notes: true
+          body: |
+            ### Direct APK Installation (Android)
+            1. Download **`Cornelieu-X-Notes-${{ env.RELEASE_TAG }}-release.apk`** from the Assets section below.
+            2. Optionally verify integrity against **`SHA256SUMS.txt`** (`sha256sum -c SHA256SUMS.txt`).
+            3. Open the APK on your Android device (enable *Install unknown apps* if prompted).
+
+            ### Automatic Updates via Obtainium
+            Add `https://github.com/yusrb2/cornelieu-x-notes` in **Obtainium** to receive signed updates automatically from GitHub Releases without any app store account.
+          files: |
+            release-artifacts/Cornelieu-X-Notes-${{ env.RELEASE_TAG }}-release.apk
+            release-artifacts/SHA256SUMS.txt
