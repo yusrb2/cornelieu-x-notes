@@ -1,14 +1,24 @@
 import { useEffect, useState } from 'preact/hooks';
 import { AppShell } from './components/AppShell';
+import { CornellEditor } from './components/CornellEditor';
+import { NoteListView } from './components/NoteListView';
+import { TemplatePickerSheet } from './components/TemplatePickerSheet';
 import {
+  activeNoteIdSignal,
+  activeNoteSignal,
   activeNotesListSignal,
+  activeTabSignal,
+  closeActiveNoteOrBack,
+  createNewNoteAction,
   dueReviewCountSignal,
   initStore,
   isHydratedSignal,
-  prefsSignal,
+  notesSignal,
+  openNote,
   updatePreferencesAction,
 } from './state/store';
 import { initThemeListener, resolvedThemeSignal, type TabId } from './state/theme';
+import type { NoteTemplate } from './types/models';
 
 const TAB_TITLES: Record<TabId, string> = {
   notes: 'Cornelieu X Notes',
@@ -18,7 +28,7 @@ const TAB_TITLES: Record<TabId, string> = {
 };
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<TabId>('notes');
+  const [templateSheetOpen, setTemplateSheetOpen] = useState(false);
 
   useEffect(() => {
     const cleanupTheme = initThemeListener();
@@ -26,14 +36,74 @@ export function App() {
     return cleanupTheme;
   }, []);
 
+  // Honor Android/browser hardware Back navigation when a note is open
+  useEffect(() => {
+    const onPopState = () => {
+      if (activeNoteIdSignal.value) {
+        void closeActiveNoteOrBack();
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const handleOpenNote = async (id: string, pushHistory = false) => {
+    if (typeof window !== 'undefined' && !activeNoteIdSignal.value) {
+      window.history.pushState({ cxNote: id }, '');
+    }
+    await openNote(id, pushHistory);
+  };
+
+  const handleCreateFromTemplate = async (tpl: NoteTemplate) => {
+    setTemplateSheetOpen(false);
+    if (typeof window !== 'undefined' && !activeNoteIdSignal.value) {
+      window.history.pushState({ cxNote: 'new' }, '');
+    }
+    await createNewNoteAction({
+      title: '',
+      subject: tpl.defaultSubject,
+      tags: tpl.tags,
+      sections: tpl.sections.map((s) => ({ cue: s.cue, notes: s.notes })),
+      summary: '',
+    });
+  };
+
+  const handleOpenWikiLink = async (linkTitle: string) => {
+    const target = linkTitle.trim().toLowerCase();
+    const existing = notesSignal.value.find(
+      (n) => n.deletedAt === null && n.title.trim().toLowerCase() === target,
+    );
+    if (existing) {
+      await handleOpenNote(existing.id, true);
+      return;
+    }
+    await createNewNoteAction({
+      title: linkTitle.trim(),
+      sections: [{ cue: '', notes: '' }],
+    });
+  };
+
+  const activeNote = activeNoteSignal.value;
+  const activeTab = activeTabSignal.value;
   const hydrated = isHydratedSignal.value;
   const activeNotes = activeNotesListSignal.value;
   const dueCount = dueReviewCountSignal.value;
 
+  if (activeNote) {
+    return (
+      <CornellEditor
+        note={activeNote}
+        onOpenNoteByTitle={(title) => void handleOpenWikiLink(title)}
+      />
+    );
+  }
+
   return (
     <AppShell
       activeTab={activeTab}
-      onSelectTab={setActiveTab}
+      onSelectTab={(tab) => {
+        activeTabSignal.value = tab;
+      }}
       viewTitle={TAB_TITLES[activeTab]}
       dueReviewCount={dueCount}
       headerRight={
@@ -56,35 +126,45 @@ export function App() {
           }}
           aria-label="Ubah tema terang atau gelap"
         >
-          {prefsSignal.value.themeMode === 'dark' || resolvedThemeSignal.value === 'dark'
-            ? 'Mode Terang'
-            : 'Mode Gelap'}
+          {resolvedThemeSignal.value === 'dark' ? 'Mode Terang' : 'Mode Gelap'}
         </button>
       }
     >
-      <section className="cx-prose" style={{ paddingBlock: '0.75rem' }}>
-        <h2
-          className="cx-heading"
+      {!hydrated ? (
+        <div
+          role="status"
           style={{
-            margin: 0,
-            fontSize: 'var(--cx-text-lg)',
-            fontWeight: 600,
+            padding: '2rem 0.5rem',
+            color: 'var(--cx-ink-muted)',
+            fontSize: 'var(--cx-text-sm)',
           }}
         >
-          {TAB_TITLES[activeTab]}
-        </h2>
-        <p
+          Membuka buku catatan lokal...
+        </div>
+      ) : activeTab === 'notes' ? (
+        <NoteListView
+          notes={activeNotes}
+          onOpenNote={(id) => void handleOpenNote(id)}
+          onCreateNote={() => setTemplateSheetOpen(true)}
+        />
+      ) : (
+        <div
           style={{
-            marginTop: '0.5rem',
+            padding: '1.5rem 0.25rem',
+            borderTop: '1px solid var(--cx-border)',
             color: 'var(--cx-ink-secondary)',
             fontSize: 'var(--cx-text-sm)',
           }}
         >
-          {hydrated
-            ? `${activeNotes.length} catatan aktif tersimpan lokal di IndexedDB.`
-            : 'Membuka penyimpanan lokal...'}
-        </p>
-      </section>
+          Tampilan {TAB_TITLES[activeTab]} akan diaktifkan pada tahap modul berikutnya.
+        </div>
+      )}
+
+      <TemplatePickerSheet
+        open={templateSheetOpen}
+        onClose={() => setTemplateSheetOpen(false)}
+        onSelectTemplate={(tpl) => void handleCreateFromTemplate(tpl)}
+      />
     </AppShell>
   );
 }

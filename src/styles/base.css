@@ -337,6 +337,26 @@
   background-color: var(--cx-surface-hover);
 }
 
+.cx-fab {
+  position: fixed;
+  right: max(1rem, var(--cx-safe-right));
+  bottom: calc(var(--cx-nav-height) + var(--cx-safe-bottom) + 1rem);
+  z-index: 28;
+}
+
+@media (min-width: 768px) {
+  .cx-fab {
+    right: max(1.75rem, var(--cx-safe-right));
+    bottom: calc(1.5rem + var(--cx-safe-bottom));
+  }
+}
+
+[data-keyboard-open='true'] .cx-fab {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(12px);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
