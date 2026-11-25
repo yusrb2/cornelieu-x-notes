@@ -30,6 +30,7 @@ import type {
   TabId,
   UserPreferences,
 } from '../types/models';
+import { isDueForReview } from '../utils/spacedRepetition';
 import { setThemeSettings } from './theme';
 
 export type SaveState = 'idle' | 'saving' | 'saved' | 'error';
@@ -71,25 +72,8 @@ export const trashedNotesSignal = computed<CornellNote[]>(() =>
 );
 
 export const dueReviewCountSignal = computed<number>(() => {
-  const now = new Date();
-  const endOfToday = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-    23,
-    59,
-    59,
-    999,
-  ).getTime();
-
-  return notesSignal.value.filter(
-    (note) =>
-      note.deletedAt === null &&
-      !note.archived &&
-      note.review.enabled &&
-      note.review.nextReviewAt !== null &&
-      note.review.nextReviewAt <= endOfToday,
-  ).length;
+  const now = Date.now();
+  return notesSignal.value.filter((note) => isDueForReview(note, now)).length;
 });
 
 const pendingSaveTimers = new Map<string, ReturnType<typeof setTimeout>>();

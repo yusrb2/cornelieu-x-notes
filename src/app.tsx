@@ -6,6 +6,7 @@ import { LibraryFilterBar } from './components/LibraryFilterBar';
 import { NotebookManagerSheet } from './components/NotebookManagerSheet';
 import { NoteListView } from './components/NoteListView';
 import { RelatedNotesSheet } from './components/RelatedNotesSheet';
+import { ReviewScheduleSheet } from './components/ReviewScheduleSheet';
 import { SearchView } from './components/SearchView';
 import { TemplatePickerSheet } from './components/TemplatePickerSheet';
 import { UndoSnackbar } from './components/UndoSnackbar';
@@ -26,13 +27,21 @@ import {
   openNote,
   permanentlyDeleteNoteAction,
   restoreNoteAction,
+  saveNoteImmediate,
+  scheduleNoteAutoSave,
+  showUndoBanner,
   toggleArchiveAction,
   trashedNotesSignal,
   updatePreferencesAction,
 } from './state/store';
 import { initThemeListener, resolvedThemeSignal, type TabId } from './state/theme';
-import type { LibraryViewMode, NoteTemplate } from './types/models';
+import type { CornellNote, LibraryViewMode, NoteTemplate } from './types/models';
 import { lazyComponent } from './utils/lazy';
+import {
+  computeNextReview,
+  formatReviewDueLabel,
+  type RecallSessionOutcome,
+} from './utils/spacedRepetition';
 
 const LazyActiveRecallView = lazyComponent(
   async () => {
@@ -40,6 +49,14 @@ const LazyActiveRecallView = lazyComponent(
     return { default: mod.ActiveRecallView };
   },
   'Memuat mode Active Recall...',
+);
+
+const LazyReviewQueueView = lazyComponent(
+  async () => {
+    const mod = await import('./components/ReviewQueueView');
+    return { default: mod.ReviewQueueView };
+  },
+  'Memuat antrean review...',
 );
 
 const TAB_TITLES: Record<TabId, string> = {
@@ -53,6 +70,8 @@ export function App() {
   const [templateSheetOpen, setTemplateSheetOpen] = useState(false);
   const [notebookManagerOpen, setNotebookManagerOpen] = useState(false);
   const [relatedSheetOpen, setRelatedSheetOpen] = useState(false);
+  const [reviewSheetOpen, setReviewSheetOpen] = useState(false);
+  const [reviewRecallNoteId, setReviewRecallNoteId] = useState<string | null>(null);
   const [libraryView, setLibraryView] = useState<LibraryViewMode>('all');
   const [selectedNotebookId, setSelectedNotebookId] = useState<string | null>(null);
   const [confirmPermanentDeleteId, setConfirmPermanentDeleteId] = useState<string | null>(null);
@@ -65,6 +84,14 @@ export function App() {
 
   useEffect(() => {
     const onPopState = () => {
+      if (reviewRecallNoteId) {
+        setReviewRecallNoteId(null);
+        return;
+      }
+      if (reviewSheetOpen) {
+        setReviewSheetOpen(false);
+        return;
+      }
       if (relatedSheetOpen) {
         setRelatedSheetOpen(false);
         return;
@@ -75,9 +102,10 @@ export function App() {
     };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
-  }, [relatedSheetOpen]);
+  }, [relatedSheetOpen, reviewSheetOpen, reviewRecallNoteId]);
 
   const handleOpenNote = async (id: string, pushHistory = false) => {
+    setReviewRecallNoteId(null);
     if (typeof window !== 'undefined' && !activeNoteIdSignal.value) {
       window.history.pushState({ cxNote: id }, '');
     }
@@ -100,6 +128,7 @@ export function App() {
   };
 
   const handleOpenWikiLink = async (linkTitle: string) => {
+    setReviewRecallNoteId(null);
     const target = linkTitle.trim().toLowerCase();
     const existing = notesSignal.value.find(
       (n) => n.deletedAt === null && n.title.trim().toLowerCase() === target,
@@ -114,6 +143,41 @@ export function App() {
     });
   };
 
+  const handleCompleteRecall = async (
+    noteId: string,
+    outcome: RecallSessionOutcome,
+    forceEnableReview = false,
+  ) => {
+    const latest: CornellNote | undefined = notesSignal.value.find((n) => n.id === noteId);
+    if (!latest) return;
+
+    if (!latest.review.enabled && !forceEnableReview) {
+      return;
+    }
+
+    const nextReview = computeNextReview(latest.review, outcome);
+    const nextStatus = outcome === 'fuzzy' ? 'needs_review' : latest.status;
+    await saveNoteImmediate({
+      ...latest,
+      status: nextStatus,
+      review: nextReview,
+    });
+
+    const dueInfo = formatReviewDueLabel(nextReview.nextReviewAt);
+    showUndoBanner(
+      {
+        message: `Jadwal review berikutnya: ${dueInfo.label}`,
+        actionLabel: 'Antrean',
+        onUndo: async () => {
+          activeNoteIdSignal.value = null;
+          setReviewRecallNoteId(null);
+          activeTabSignal.value = 'review';
+        },
+      },
+      4000,
+    );
+  };
+
   const activeNote = activeNoteSignal.value;
   const activeTab = activeTabSignal.value;
   const hydrated = isHydratedSignal.value;
@@ -122,6 +186,11 @@ export function App() {
   const trashedNotes = trashedNotesSignal.value;
   const notebooks = notebooksSignal.value;
   const dueCount = dueReviewCountSignal.value;
+
+  const queueRecallNote = useMemo(() => {
+    if (!reviewRecallNoteId) return null;
+    return notesSignal.value.find((n) => n.id === reviewRecallNoteId) ?? null;
+  }, [reviewRecallNoteId, notesSignal.value]);
 
   const notebookNoteCounts = useMemo(() => {
     const counts = new Map<string, number>();
@@ -151,6 +220,24 @@ export function App() {
     }
   }, [libraryView, selectedNotebookId, activeNotes, archivedNotes, trashedNotes]);
 
+  if (queueRecallNote) {
+    return (
+      <>
+        <LazyActiveRecallView
+          note={queueRecallNote}
+          exitLabel="Kembali ke Review"
+          onUpdateNote={(next) => scheduleNoteAutoSave(next)}
+          onOpenNoteByTitle={(title) => void handleOpenWikiLink(title)}
+          onCompleteRecall={(outcome) =>
+            handleCompleteRecall(queueRecallNote.id, outcome, true)
+          }
+          onExitRecall={() => setReviewRecallNoteId(null)}
+        />
+        <UndoSnackbar aboveEditorBar />
+      </>
+    );
+  }
+
   if (activeNote) {
     return (
       <>
@@ -158,12 +245,16 @@ export function App() {
           note={activeNote}
           onOpenNoteByTitle={(title) => void handleOpenWikiLink(title)}
           onOpenRelatedNotes={() => setRelatedSheetOpen(true)}
+          onOpenReviewSettings={() => setReviewSheetOpen(true)}
           renderRecallView={({ note, onUpdateNote, onExitRecall }) => (
             <LazyActiveRecallView
               note={note}
               onUpdateNote={onUpdateNote}
               onExitRecall={onExitRecall}
               onOpenNoteByTitle={(title) => void handleOpenWikiLink(title)}
+              onCompleteRecall={(outcome) =>
+                handleCompleteRecall(note.id, outcome, false)
+              }
             />
           )}
         />
@@ -172,6 +263,11 @@ export function App() {
           note={activeNote}
           onClose={() => setRelatedSheetOpen(false)}
           onNavigateNote={(targetId) => void handleOpenNote(targetId, true)}
+        />
+        <ReviewScheduleSheet
+          open={reviewSheetOpen}
+          note={activeNote}
+          onClose={() => setReviewSheetOpen(false)}
         />
         <UndoSnackbar aboveEditorBar />
       </>
@@ -354,6 +450,16 @@ export function App() {
                   )
                 : undefined
           }
+        />
+      ) : activeTab === 'review' ? (
+        <LazyReviewQueueView
+          onStartRecall={(id) => {
+            if (typeof window !== 'undefined') {
+              window.history.pushState({ cxRecall: id }, '');
+            }
+            setReviewRecallNoteId(id);
+          }}
+          onOpenNote={(id) => void handleOpenNote(id)}
         />
       ) : activeTab === 'search' ? (
         <SearchView onOpenNote={(id) => void handleOpenNote(id)} />
