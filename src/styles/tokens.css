@@ -1,0 +1,133 @@
+:root,
+[data-theme='light'] {
+  color-scheme: light;
+
+  /* Editorial Warm Paper Surfaces */
+  --cx-bg: #f7f5f0;
+  --cx-surface: #fcfbf8;
+  --cx-surface-subtle: #efece4;
+  --cx-surface-hover: #e7e3d9;
+
+  /* Structural Hairlines */
+  --cx-border: #dcd7cc;
+  --cx-border-strong: #c5beb0;
+
+  /* High-Contrast Warm Charcoal Ink (WCAG AA+) */
+  --cx-ink: #1f1e1b;
+  --cx-ink-secondary: #524e46;
+  --cx-ink-muted: #676258;
+
+  /* Primary Accent: Deep Study Teal */
+  --cx-accent: #1f5e5b;
+  --cx-accent-soft: rgba(31, 94, 91, 0.09);
+  --cx-accent-ink: #faf9f5;
+
+  /* Functional Recall & Review Accent: Warm Ochre */
+  --cx-recall: #9c5318;
+  --cx-recall-soft: rgba(156, 83, 24, 0.1);
+
+  /* Muted Semantic Danger (Trash Permanent Delete Only) */
+  --cx-danger: #9e382e;
+  --cx-danger-soft: rgba(158, 56, 46, 0.09);
+
+  /* Browser & Overlay Surfaces */
+  --cx-selection-bg: rgba(31, 94, 91, 0.18);
+  --cx-backdrop: rgba(31, 30, 27, 0.36);
+  --cx-sheet-shadow: 0 -8px 24px rgba(31, 30, 27, 0.1);
+  --cx-fab-shadow: 0 4px 14px rgba(31, 30, 27, 0.16);
+
+  /* Perceptual Reading Rhythm */
+  --cx-body-lh: 1.62;
+  --cx-body-tracking: 0em;
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+
+  /* Calm Study Slate Surfaces */
+  --cx-bg: #151614;
+  --cx-surface: #1c1e1b;
+  --cx-surface-subtle: #232622;
+  --cx-surface-hover: #2c302b;
+
+  /* Structural Hairlines */
+  --cx-border: #2f332e;
+  --cx-border-strong: #434841;
+
+  /* Warm Alabaster Ink (WCAG AA+ without harsh glare) */
+  --cx-ink: #eceae3;
+  --cx-ink-secondary: #b2aea4;
+  --cx-ink-muted: #928e84;
+
+  /* Primary Accent */
+  --cx-accent: #5ba8a3;
+  --cx-accent-soft: rgba(91, 168, 163, 0.14);
+  --cx-accent-ink: #111716;
+
+  /* Functional Recall & Review Accent */
+  --cx-recall: #de954e;
+  --cx-recall-soft: rgba(222, 149, 78, 0.14);
+
+  /* Muted Semantic Danger */
+  --cx-danger: #e07466;
+  --cx-danger-soft: rgba(224, 116, 102, 0.14);
+
+  /* Browser & Overlay Surfaces */
+  --cx-selection-bg: rgba(91, 168, 163, 0.24);
+  --cx-backdrop: rgba(10, 11, 10, 0.62);
+  --cx-sheet-shadow: 0 -8px 28px rgba(0, 0, 0, 0.36);
+  --cx-fab-shadow: 0 4px 16px rgba(0, 0, 0, 0.38);
+
+  /* Dark-Mode Perceptual Compensation */
+  --cx-body-lh: 1.66;
+  --cx-body-tracking: 0.008em;
+}
+
+:root {
+  /* Typography Families (100% Local System Editorial Stacks) */
+  --cx-font-serif: 'Literata', 'Noto Serif', 'Iowan Old Style', Georgia, Cambria, serif;
+  --cx-font-sans: 'Inter', 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --cx-font-mono: 'JetBrains Mono', 'Roboto Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+
+  /* Dynamic Typographic Scale */
+  --cx-font-scale: 1;
+  --cx-text-xs: calc(0.75rem * var(--cx-font-scale));
+  --cx-text-sm: calc(0.875rem * var(--cx-font-scale));
+  --cx-text-base: calc(1rem * var(--cx-font-scale));
+  --cx-text-lg: calc(1.125rem * var(--cx-font-scale));
+  --cx-text-xl: calc(1.3125rem * var(--cx-font-scale));
+  --cx-text-2xl: calc(1.625rem * var(--cx-font-scale));
+
+  /* 4px Base Spacing Scale */
+  --cx-space-1: 0.25rem;
+  --cx-space-2: 0.5rem;
+  --cx-space-3: 0.75rem;
+  --cx-space-4: 1rem;
+  --cx-space-5: 1.25rem;
+  --cx-space-6: 1.5rem;
+  --cx-space-8: 2rem;
+  --cx-space-10: 2.5rem;
+  --cx-space-12: 3rem;
+
+  /* Disciplined Radii */
+  --cx-radius-sm: 4px;
+  --cx-radius-md: 8px;
+  --cx-radius-lg: 12px;
+  --cx-radius-sheet: 16px;
+
+  /* Native CSS Motion */
+  --cx-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --cx-ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --cx-duration-fast: 120ms;
+  --cx-duration-base: 220ms;
+
+  /* Mobile Safe Areas & Viewport Metrics */
+  --cx-safe-top: env(safe-area-inset-top, 0px);
+  --cx-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --cx-safe-left: env(safe-area-inset-left, 0px);
+  --cx-safe-right: env(safe-area-inset-right, 0px);
+  --cx-vh: 100dvh;
+  --cx-keyboard-height: 0px;
+  --cx-nav-height: 62px;
+  --cx-rail-width: 212px;
+}
