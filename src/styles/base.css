@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./fonts.css";
 @import "./tokens.css";
 
 @layer base {
@@ -103,9 +104,18 @@
 
 .cx-heading {
   font-family: var(--cx-font-serif);
+  font-optical-sizing: auto;
   letter-spacing: -0.02em;
-  line-height: 1.24;
+  line-height: 1.22;
   text-wrap: balance;
+}
+
+.cx-cue-text {
+  font-family: var(--cx-font-mono);
+  font-weight: 500;
+  line-height: 1.56;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
 }
 
 .cx-prose {

@@ -176,21 +176,48 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
                 </button>
               ))}
             </div>
-            <p
-              className="cx-prose"
+            <div
               style={{
                 marginTop: '0.65rem',
-                marginBottom: 0,
-                padding: '0.75rem 0.9rem',
+                padding: '0.85rem 1rem',
                 border: '1px solid var(--cx-border)',
                 borderRadius: 'var(--cx-radius-md)',
                 backgroundColor: 'var(--cx-surface)',
-                fontSize: 'var(--cx-text-sm)',
-                color: 'var(--cx-ink-secondary)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.45rem',
               }}
             >
-              Pratinjau keterbacaan: Metode Cornell membantu otak menautkan kata kunci di kolom Cue dengan sintesis ringkas di bagian bawah halaman.
-            </p>
+              <div
+                className="cx-heading"
+                style={{ fontSize: 'var(--cx-text-lg)', fontWeight: 600, color: 'var(--cx-ink)' }}
+              >
+                Mengunci Pemahaman dengan Metode Cornell
+              </div>
+              <div
+                className="cx-cue-text"
+                style={{
+                  fontSize: 'var(--cx-text-xs)',
+                  color: 'var(--cx-accent-secondary-on-soft)',
+                  backgroundColor: 'var(--cx-accent-secondary-soft)',
+                  padding: '0.35rem 0.6rem',
+                  borderRadius: 'var(--cx-radius-sm)',
+                  alignSelf: 'flex-start',
+                }}
+              >
+                Cue · Bagaimana ritme membaca memengaruhi retensi?
+              </div>
+              <p
+                className="cx-prose"
+                style={{
+                  margin: 0,
+                  fontSize: 'var(--cx-text-sm)',
+                  color: 'var(--cx-ink-secondary)',
+                }}
+              >
+                Pratinjau keterbacaan: Metode Cornell memadukan pemicu ingatan ringkas dengan catatan terstruktur serta sintesis akhir yang nyaman dibaca lama.
+              </p>
+            </div>
           </div>
 
           {/* Default Layout */}

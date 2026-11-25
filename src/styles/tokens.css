@@ -114,19 +114,25 @@
 }
 
 :root {
-  /* Typography Families (100% Local Offline Stacks) */
-  --cx-font-serif: 'Literata', 'Noto Serif', 'Iowan Old Style', Georgia, Cambria, serif;
-  --cx-font-sans: 'Inter', 'Roboto', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --cx-font-mono: 'JetBrains Mono', 'Roboto Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  /* Bundled Offline Editorial Font Stacks */
+  --cx-font-serif: 'Newsreader', 'Lora', 'Iowan Old Style', Georgia, Cambria, serif;
+  --cx-font-sans: 'Plus Jakarta Sans', 'Source Sans 3', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --cx-font-mono: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Consolas, monospace;
 
-  /* Dynamic Typographic Scale */
+  /* Fluid clamp() Typographic Scale */
   --cx-font-scale: 1;
-  --cx-text-xs: calc(0.75rem * var(--cx-font-scale));
-  --cx-text-sm: calc(0.875rem * var(--cx-font-scale));
-  --cx-text-base: calc(1rem * var(--cx-font-scale));
-  --cx-text-lg: calc(1.125rem * var(--cx-font-scale));
-  --cx-text-xl: calc(1.3125rem * var(--cx-font-scale));
-  --cx-text-2xl: calc(1.625rem * var(--cx-font-scale));
+  --cx-text-xs: calc(clamp(0.75rem, 0.72rem + 0.14vw, 0.8125rem) * var(--cx-font-scale));
+  --cx-text-sm: calc(clamp(0.84rem, 0.80rem + 0.18vw, 0.92rem) * var(--cx-font-scale));
+  --cx-text-base: calc(clamp(0.95rem, 0.91rem + 0.22vw, 1.05rem) * var(--cx-font-scale));
+  --cx-text-lg: calc(clamp(1.08rem, 1rem + 0.36vw, 1.24rem) * var(--cx-font-scale));
+  --cx-text-xl: calc(clamp(1.26rem, 1.14rem + 0.62vw, 1.54rem) * var(--cx-font-scale));
+  --cx-text-2xl: calc(clamp(1.52rem, 1.32rem + 1.05vw, 2.02rem) * var(--cx-font-scale));
+
+  /* Fluid clamp() Layout Spacing */
+  --cx-page-px: clamp(0.875rem, 0.55rem + 1.6vw, 2rem);
+  --cx-page-py: clamp(0.875rem, 0.7rem + 0.9vw, 1.5rem);
+  --cx-section-gap: clamp(1rem, 0.8rem + 1vw, 1.75rem);
+  --cx-cell-pad: clamp(0.8rem, 0.65rem + 0.8vw, 1.25rem);
 
   /* 4px Base Spacing Scale */
   --cx-space-1: 0.25rem;
