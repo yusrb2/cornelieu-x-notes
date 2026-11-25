@@ -7,6 +7,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   fontScale: 1,
   defaultLayout: 'auto',
   seededSampleNote: false,
+  locale: null,
 };
 
 export async function getPreferences(): Promise<UserPreferences> {

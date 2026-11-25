@@ -1,5 +1,6 @@
 import { useEffect } from 'preact/hooks';
-import { NOTE_TEMPLATES } from '../data/templates';
+import { getNoteTemplates } from '../data/templates';
+import { localeSignal, t } from '../i18n';
 import type { NoteTemplate } from '../types/models';
 import { ChevronRightIcon, CloseIcon } from './Icons';
 
@@ -24,6 +25,8 @@ export function TemplatePickerSheet({
   }, [open, onClose]);
 
   if (!open) return null;
+
+  const templates = getNoteTemplates(localeSignal.value);
 
   return (
     <div
@@ -54,13 +57,13 @@ export function TemplatePickerSheet({
               fontWeight: 600,
             }}
           >
-            Mulai Catatan Baru
+            {t('templates.title')}
           </h2>
           <button
             type="button"
             className="cx-touch cx-interactive"
             onClick={onClose}
-            aria-label="Tutup pilihan template"
+            aria-label={t('templates.closeAria')}
             style={{
               border: 'none',
               background: 'transparent',
@@ -73,7 +76,7 @@ export function TemplatePickerSheet({
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          {NOTE_TEMPLATES.map((tpl, idx) => (
+          {templates.map((tpl, idx) => (
             <button
               key={tpl.id}
               type="button"
@@ -90,7 +93,7 @@ export function TemplatePickerSheet({
                 textAlign: 'left',
                 border: 'none',
                 borderBottom:
-                  idx < NOTE_TEMPLATES.length - 1 ? '1px solid var(--cx-border)' : 'none',
+                  idx < templates.length - 1 ? '1px solid var(--cx-border)' : 'none',
                 backgroundColor: 'transparent',
               }}
             >

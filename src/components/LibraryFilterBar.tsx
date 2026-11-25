@@ -1,4 +1,5 @@
 import { useState } from 'preact/hooks';
+import { t } from '../i18n';
 import type { LibraryViewMode, Notebook } from '../types/models';
 import { FolderIcon, TrashIcon } from './Icons';
 
@@ -33,11 +34,11 @@ export function LibraryFilterBar({
   const [confirmEmptyTrash, setConfirmEmptyTrash] = useState(false);
 
   const tabs: Array<{ id: LibraryViewMode; label: string; count?: number }> = [
-    { id: 'all', label: 'Semua', count: counts.all },
-    { id: 'pinned', label: 'Disematkan', count: counts.pinned },
-    { id: 'notebook', label: 'Notebook', count: notebooks.length },
-    { id: 'archived', label: 'Arsip', count: counts.archived },
-    { id: 'trash', label: 'Sampah', count: counts.trash },
+    { id: 'all', label: t('library.tabs.all'), count: counts.all },
+    { id: 'pinned', label: t('library.tabs.pinned'), count: counts.pinned },
+    { id: 'notebook', label: t('library.tabs.notebook'), count: notebooks.length },
+    { id: 'archived', label: t('library.tabs.archived'), count: counts.archived },
+    { id: 'trash', label: t('library.tabs.trash'), count: counts.trash },
   ];
 
   return (
@@ -45,7 +46,7 @@ export function LibraryFilterBar({
       {/* Editorial Underline Text Tabs */}
       <div
         role="tablist"
-        aria-label="Filter perpustakaan catatan"
+        aria-label={t('library.filterAria')}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -113,7 +114,7 @@ export function LibraryFilterBar({
             onClick={() => onSelectNotebook(null)}
             style={chipStyle(selectedNotebookId === null)}
           >
-            Semua Notebook
+            {t('library.allNotebooks')}
           </button>
 
           {notebooks.map((nb) => (
@@ -152,7 +153,7 @@ export function LibraryFilterBar({
             }}
           >
             <FolderIcon size={15} />
-            <span>Kelola Notebook</span>
+            <span>{t('library.manageNotebooksLong')}</span>
           </button>
         </div>
       )}
@@ -173,7 +174,7 @@ export function LibraryFilterBar({
           }}
         >
           <span style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-secondary)' }}>
-            Catatan di Sampah dapat dipulihkan sebelum dihapus permanen.
+            {t('library.trashNotice')}
           </span>
 
           {!confirmEmptyTrash ? (
@@ -196,7 +197,7 @@ export function LibraryFilterBar({
               }}
             >
               <TrashIcon size={15} />
-              <span>Kosongkan Sampah</span>
+              <span>{t('library.emptyTrash')}</span>
             </button>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -212,7 +213,7 @@ export function LibraryFilterBar({
                   fontSize: 'var(--cx-text-xs)',
                 }}
               >
-                Batal
+                {t('common.cancel')}
               </button>
               <button
                 type="button"
@@ -231,7 +232,7 @@ export function LibraryFilterBar({
                   fontWeight: 600,
                 }}
               >
-                Hapus Semua Permanen
+                {t('library.deleteAllPermanent')}
               </button>
             </div>
           )}

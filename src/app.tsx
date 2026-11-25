@@ -10,6 +10,7 @@ import { ReviewScheduleSheet } from './components/ReviewScheduleSheet';
 import { SearchView } from './components/SearchView';
 import { TemplatePickerSheet } from './components/TemplatePickerSheet';
 import { UndoSnackbar } from './components/UndoSnackbar';
+import { localeSignal, t, type TranslationKey } from './i18n';
 import {
   activeNoteIdSignal,
   activeNoteSignal,
@@ -57,7 +58,7 @@ const LazyActiveRecallView = lazyComponent(
     const mod = await import('./components/ActiveRecallView');
     return { default: mod.ActiveRecallView };
   },
-  'Memuat mode Active Recall...',
+  'app.loadingRecall',
 );
 
 const LazyReviewQueueView = lazyComponent(
@@ -65,7 +66,7 @@ const LazyReviewQueueView = lazyComponent(
     const mod = await import('./components/ReviewQueueView');
     return { default: mod.ReviewQueueView };
   },
-  'Memuat antrean review...',
+  'app.loadingReviewQueue',
 );
 
 const LazySettingsView = lazyComponent(
@@ -73,14 +74,14 @@ const LazySettingsView = lazyComponent(
     const mod = await import('./components/SettingsView');
     return { default: mod.SettingsView };
   },
-  'Memuat setelan...',
+  'app.loadingSettings',
 );
 
-const TAB_TITLES: Record<TabId, string> = {
-  notes: 'Cornelieu X Notes',
-  review: 'Antrean Review',
-  search: 'Cari Catatan',
-  settings: 'Setelan',
+const TAB_TITLE_KEYS: Record<TabId, TranslationKey> = {
+  notes: 'titles.notes',
+  review: 'titles.review',
+  search: 'titles.search',
+  settings: 'titles.settings',
 };
 
 export function App() {
@@ -190,8 +191,8 @@ export function App() {
     const dueInfo = formatReviewDueLabel(nextReview.nextReviewAt);
     showUndoBanner(
       {
-        message: `Jadwal review berikutnya: ${dueInfo.label}`,
-        actionLabel: 'Antrean',
+        message: t('store.nextReviewNotice', { label: dueInfo.label }),
+        actionLabel: t('store.queueAction'),
         onUndo: async () => {
           activeNoteIdSignal.value = null;
           setReviewRecallNoteId(null);
@@ -209,7 +210,7 @@ export function App() {
   ) => {
     await flushPendingSaves();
     const nbName = notebooksSignal.value.find((nb) => nb.id === note.notebookId)?.name;
-    const baseName = sanitizeFilename(note.title || 'catatan-cornell');
+    const baseName = sanitizeFilename(note.title || t('common.untitledNote'));
 
     if (format === 'md') {
       triggerFileDownload(
@@ -230,15 +231,16 @@ export function App() {
     showUndoBanner(
       {
         message: copied
-          ? 'Teks catatan disalin ke papan klip'
-          : 'Gagal menyalin teks ke papan klip',
-        actionLabel: 'Tutup',
+          ? t('store.copiedNotice')
+          : t('store.copyFailedNotice'),
+        actionLabel: t('common.close'),
         onUndo: async () => {},
       },
       3000,
     );
   };
 
+  const activeLocale = localeSignal.value;
   const activeNote = activeNoteSignal.value;
   const activeTab = activeTabSignal.value;
   const hydrated = isHydratedSignal.value;
@@ -282,22 +284,25 @@ export function App() {
   }, [libraryView, selectedNotebookId, activeNotes, archivedNotes, trashedNotes]);
 
   const desktopPaneTitle = useMemo(() => {
-    if (libraryView === 'pinned') return 'Disematkan';
-    if (libraryView === 'archived') return 'Arsip';
-    if (libraryView === 'trash') return 'Sampah';
+    if (libraryView === 'pinned') return t('library.tabs.pinned');
+    if (libraryView === 'archived') return t('library.tabs.archived');
+    if (libraryView === 'trash') return t('library.tabs.trash');
     if (libraryView === 'notebook') {
-      if (!selectedNotebookId) return 'Semua Notebook';
-      return notebooks.find((nb) => nb.id === selectedNotebookId)?.name ?? 'Notebook';
+      if (!selectedNotebookId) return t('library.allNotebooks');
+      return (
+        notebooks.find((nb) => nb.id === selectedNotebookId)?.name ??
+        t('library.tabs.notebook')
+      );
     }
-    return 'Semua Catatan';
-  }, [libraryView, selectedNotebookId, notebooks]);
+    return t('library.allNotesHeading');
+  }, [libraryView, selectedNotebookId, notebooks, activeLocale]);
 
   if (queueRecallNote) {
     return (
       <>
         <LazyActiveRecallView
           note={queueRecallNote}
-          exitLabel="Kembali ke Review"
+          exitLabel={t('recall.backToReview')}
           onUpdateNote={(next) => scheduleNoteAutoSave(next)}
           onOpenNoteByTitle={(title) => void handleOpenWikiLink(title)}
           onCompleteRecall={(outcome) =>
@@ -359,7 +364,9 @@ export function App() {
               type="button"
               className="cx-touch cx-interactive"
               onClick={() => void restoreNoteAction(note.id)}
-              aria-label={`Pulihkan ${note.title || 'catatan'}`}
+              aria-label={t('library.restoreAria', {
+                title: note.title || t('common.untitledNote'),
+              })}
               style={{
                 border: 'none',
                 borderRadius: 'var(--cx-radius-md)',
@@ -372,7 +379,7 @@ export function App() {
               }}
             >
               <RestoreIcon size={16} />
-              <span>Pulihkan</span>
+              <span>{t('common.restore')}</span>
             </button>
 
             {confirmPermanentDeleteId === note.id ? (
@@ -393,14 +400,16 @@ export function App() {
                   fontWeight: 600,
                 }}
               >
-                Hapus
+                {t('common.delete')}
               </button>
             ) : (
               <button
                 type="button"
                 className="cx-touch cx-interactive"
                 onClick={() => setConfirmPermanentDeleteId(note.id)}
-                aria-label={`Hapus permanen ${note.title || 'catatan'}`}
+                aria-label={t('library.permanentDeleteAria', {
+                  title: note.title || t('common.untitledNote'),
+                })}
                 style={{
                   border: 'none',
                   borderRadius: 'var(--cx-radius-md)',
@@ -419,7 +428,9 @@ export function App() {
               type="button"
               className="cx-touch cx-interactive"
               onClick={() => void toggleArchiveAction(note.id)}
-              aria-label={`Keluarkan ${note.title || 'catatan'} dari arsip`}
+              aria-label={t('library.unarchiveAria', {
+                title: note.title || t('common.untitledNote'),
+              })}
               style={{
                 border: 'none',
                 borderRadius: 'var(--cx-radius-md)',
@@ -430,7 +441,7 @@ export function App() {
                 fontWeight: 600,
               }}
             >
-              Pulihkan
+              {t('common.restore')}
             </button>
           )
         : undefined;
@@ -447,18 +458,18 @@ export function App() {
             color: 'var(--cx-ink-muted)',
           }}
         >
-          Perpustakaan
+          {t('library.sectionTitle')}
         </div>
         {(
           [
-            { id: 'all', label: 'Semua', count: activeNotes.length },
+            { id: 'all', label: t('library.tabs.all'), count: activeNotes.length },
             {
               id: 'pinned',
-              label: 'Disematkan',
+              label: t('library.tabs.pinned'),
               count: activeNotes.filter((n) => n.pinned).length,
             },
-            { id: 'archived', label: 'Arsip', count: archivedNotes.length },
-            { id: 'trash', label: 'Sampah', count: trashedNotes.length },
+            { id: 'archived', label: t('library.tabs.archived'), count: archivedNotes.length },
+            { id: 'trash', label: t('library.tabs.trash'), count: trashedNotes.length },
           ] as Array<{ id: LibraryViewMode; label: string; count: number }>
         ).map((item) => {
           const active = activeTab === 'notes' && libraryView === item.id;
@@ -510,7 +521,7 @@ export function App() {
             color: 'var(--cx-ink-muted)',
           }}
         >
-          <span>Notebook</span>
+          <span>{t('library.notebooksHeading')}</span>
           <button
             type="button"
             onClick={() => setNotebookManagerOpen(true)}
@@ -523,7 +534,7 @@ export function App() {
               fontWeight: 600,
             }}
           >
-            Kelola
+            {t('library.manageNotebooks')}
           </button>
         </div>
 
@@ -584,28 +595,71 @@ export function App() {
     </>
   );
 
-  const themeToggleButton = (
-    <button
-      type="button"
-      className="cx-touch cx-interactive"
-      onClick={() =>
-        void updatePreferencesAction({
-          themeMode: resolvedThemeSignal.value === 'dark' ? 'light' : 'dark',
-        })
-      }
-      style={{
-        border: '1px solid var(--cx-border)',
-        borderRadius: 'var(--cx-radius-md)',
-        backgroundColor: 'var(--cx-surface)',
-        paddingInline: '0.75rem',
-        fontSize: 'var(--cx-text-xs)',
-        fontWeight: 500,
-        color: 'var(--cx-ink-secondary)',
-      }}
-      aria-label="Ubah tema terang atau gelap"
-    >
-      {resolvedThemeSignal.value === 'dark' ? 'Mode Terang' : 'Mode Gelap'}
-    </button>
+  const headerActions = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+      <div
+        role="group"
+        aria-label={t('header.switchLangAria')}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          padding: '2px',
+          borderRadius: 'var(--cx-radius-md)',
+          border: '1px solid var(--cx-border)',
+          backgroundColor: 'var(--cx-surface)',
+        }}
+      >
+        {(['id', 'en'] as const).map((lang) => {
+          const active = activeLocale === lang;
+          return (
+            <button
+              key={lang}
+              type="button"
+              onClick={() => void updatePreferencesAction({ locale: lang })}
+              aria-pressed={active}
+              style={{
+                minWidth: '34px',
+                minHeight: '38px',
+                padding: '0 8px',
+                border: 'none',
+                borderRadius: 'calc(var(--cx-radius-md) - 3px)',
+                backgroundColor: active ? 'var(--cx-accent-soft)' : 'transparent',
+                color: active ? 'var(--cx-accent-on-soft)' : 'var(--cx-ink-secondary)',
+                fontSize: '0.72rem',
+                fontWeight: active ? 700 : 500,
+                letterSpacing: '0.02em',
+              }}
+            >
+              {lang.toUpperCase()}
+            </button>
+          );
+        })}
+      </div>
+
+      <button
+        type="button"
+        className="cx-touch cx-interactive"
+        onClick={() =>
+          void updatePreferencesAction({
+            themeMode: resolvedThemeSignal.value === 'dark' ? 'light' : 'dark',
+          })
+        }
+        style={{
+          border: '1px solid var(--cx-border)',
+          borderRadius: 'var(--cx-radius-md)',
+          backgroundColor: 'var(--cx-surface)',
+          paddingInline: '0.75rem',
+          fontSize: 'var(--cx-text-xs)',
+          fontWeight: 500,
+          color: 'var(--cx-ink-secondary)',
+        }}
+        aria-label={t('header.toggleThemeAria')}
+      >
+        {resolvedThemeSignal.value === 'dark'
+          ? t('header.lightMode')
+          : t('header.darkMode')}
+      </button>
+    </div>
   );
 
   return (
@@ -615,11 +669,11 @@ export function App() {
         activeTabSignal.value = tab;
         setEditorFullscreen(false);
       }}
-      viewTitle={TAB_TITLES[activeTab]}
+      viewTitle={t(TAB_TITLE_KEYS[activeTab])}
       dueReviewCount={dueCount}
       fullBleedWorkspace={isThreeZoneActive}
       sidebarExtras={sidebarExtras}
-      headerRight={themeToggleButton}
+      headerRight={headerActions}
     >
       {!hydrated ? (
         <div
@@ -630,12 +684,12 @@ export function App() {
             fontSize: 'var(--cx-text-sm)',
           }}
         >
-          Membuka buku catatan lokal...
+          {t('app.loadingApp')}
         </div>
       ) : isThreeZoneActive ? (
         /* Zone 2 (Notes List Pane) + Zone 3 (Cornell Editor Pane) */
         <div className="cx-desktop-workspace">
-          <section className="cx-list-pane" aria-label="Daftar catatan">
+          <section className="cx-list-pane" aria-label={t('library.listAria')}>
             <div
               style={{
                 minHeight: '52px',
@@ -683,7 +737,7 @@ export function App() {
                         fontWeight: 600,
                       }}
                     >
-                      Hapus Semua
+                      {t('library.deleteAllShort')}
                     </button>
                   ) : (
                     <button
@@ -701,7 +755,7 @@ export function App() {
                         fontWeight: 600,
                       }}
                     >
-                      Kosongkan
+                      {t('library.emptyTrashShort')}
                     </button>
                   )
                 )}
@@ -725,7 +779,7 @@ export function App() {
                     }}
                   >
                     <PlusIcon size={15} />
-                    <span>Baru</span>
+                    <span>{t('common.newBtn')}</span>
                   </button>
                 )}
               </div>
@@ -744,26 +798,26 @@ export function App() {
                 onCreateNote={() => setTemplateSheetOpen(true)}
                 emptyTitle={
                   libraryView === 'trash'
-                    ? 'Sampah kosong'
+                    ? t('library.empty.trashTitle')
                     : libraryView === 'archived'
-                      ? 'Belum ada arsip'
+                      ? t('library.empty.archivedTitleDesktop')
                       : libraryView === 'pinned'
-                        ? 'Belum ada sematan'
-                        : 'Belum ada catatan'
+                        ? t('library.empty.pinnedTitleDesktop')
+                        : t('library.empty.allTitleDesktop')
                 }
                 emptyDescription={
                   libraryView === 'trash'
-                    ? 'Catatan terhapus muncul di sini.'
+                    ? t('library.empty.trashDescDesktop')
                     : libraryView === 'archived'
-                      ? 'Arsip menyimpan catatan lama.'
-                      : 'Buat catatan Cornell baru dari tombol di atas.'
+                      ? t('library.empty.archivedDescDesktop')
+                      : t('library.empty.allDescDesktop')
                 }
                 renderRowActions={renderListRowActions}
               />
             </div>
           </section>
 
-          <section className="cx-editor-pane" aria-label="Kanvas editor Cornell">
+          <section className="cx-editor-pane" aria-label={t('editor.canvasAria')}>
             {activeNote && activeNote.deletedAt === null ? (
               <>
                 <CornellEditor
@@ -819,7 +873,7 @@ export function App() {
                     justifyContent: 'flex-end',
                   }}
                 >
-                  {themeToggleButton}
+                  {headerActions}
                 </div>
 
                 <div
@@ -840,7 +894,7 @@ export function App() {
                         fontWeight: 600,
                       }}
                     >
-                      Pilih atau mulai catatan Cornell
+                      {t('library.desktopWelcomeTitle')}
                     </h2>
                     <p
                       style={{
@@ -850,7 +904,7 @@ export function App() {
                         color: 'var(--cx-ink-secondary)',
                       }}
                     >
-                      Pilih salah satu catatan dari panel kiri untuk mulai menulis, membaca ulang, atau melatih Active Recall.
+                      {t('library.desktopWelcomeBody')}
                     </p>
                     <button
                       type="button"
@@ -870,7 +924,7 @@ export function App() {
                       }}
                     >
                       <PlusIcon size={18} />
-                      <span>Buat Catatan Baru</span>
+                      <span>{t('library.createNewCta')}</span>
                     </button>
                   </div>
                 </div>
@@ -890,21 +944,21 @@ export function App() {
           onCreateNote={() => setTemplateSheetOpen(true)}
           emptyTitle={
             libraryView === 'trash'
-              ? 'Sampah kosong'
+              ? t('library.empty.trashTitle')
               : libraryView === 'archived'
-                ? 'Belum ada catatan di Arsip'
+                ? t('library.empty.archivedTitleMobile')
                 : libraryView === 'pinned'
-                  ? 'Belum ada catatan yang disematkan'
-                  : 'Belum ada catatan di sini'
+                  ? t('library.empty.pinnedTitleMobile')
+                  : t('library.empty.allTitleMobile')
           }
           emptyDescription={
             libraryView === 'trash'
-              ? 'Catatan yang Anda hapus akan muncul sementara di sini agar bisa dipulihkan.'
+              ? t('library.empty.trashDescMobile')
               : libraryView === 'archived'
-                ? 'Arsip menyimpan catatan lama tanpa menghapus riwayat dan tautannya.'
+                ? t('library.empty.archivedDescMobile')
                 : libraryView === 'pinned'
-                  ? 'Sematkan catatan penting dari menu editor agar selalu berada di bagian atas.'
-                  : 'Mulai satu halaman Cornell untuk mencatat kuliah, rapat, atau bacaan secara terstruktur.'
+                  ? t('library.empty.pinnedDescMobile')
+                  : t('library.empty.allDescMobile')
           }
           topSlot={
             <LibraryFilterBar

@@ -4,6 +4,7 @@ import {
   normalizeTags,
   type CreateNoteInput,
 } from '../db/notesRepository';
+import { t, type Locale } from '../i18n';
 import type {
   BackupPayload,
   CornellNote,
@@ -36,7 +37,7 @@ function unquoteYaml(raw: string): string {
 }
 
 export function noteToMarkdown(note: CornellNote, notebookName?: string): string {
-  const title = note.title.trim() || 'Catatan Tanpa Judul';
+  const title = note.title.trim() || t('common.untitledNote');
   const tagsYaml =
     note.tags.length > 0
       ? `[${note.tags.map((t) => yamlString(t)).join(', ')}]`
@@ -78,31 +79,58 @@ export function noteToMarkdown(note: CornellNote, notebookName?: string): string
   return lines.join('\n');
 }
 
-export function noteToPlainText(note: CornellNote, notebookName?: string): string {
-  const title = note.title.trim() || 'Catatan Tanpa Judul';
+export function noteToPlainText(
+  note: CornellNote,
+  notebookName?: string,
+  locale?: Locale,
+): string {
+  const title = note.title.trim() || t('common.untitledNote', undefined, locale);
   const headerLines = [
     title,
-    `Status: ${formatStatusLabel(note.status)} | Diperbarui: ${formatFullDate(note.updatedAt)}`,
+    t(
+      'exportImport.plainHeaderStatusUpdated',
+      {
+        status: formatStatusLabel(note.status, locale),
+        date: formatFullDate(note.updatedAt, locale),
+      },
+      locale,
+    ),
   ];
-  if (note.subject.trim()) headerLines.push(`Topik: ${note.subject.trim()}`);
-  if (notebookName?.trim()) headerLines.push(`Notebook: ${notebookName.trim()}`);
+  if (note.subject.trim()) {
+    headerLines.push(
+      t('exportImport.plainSubject', { subject: note.subject.trim() }, locale),
+    );
+  }
+  if (notebookName?.trim()) {
+    headerLines.push(
+      t('exportImport.plainNotebook', { notebook: notebookName.trim() }, locale),
+    );
+  }
   if (note.tags.length > 0) {
-    headerLines.push(`Tag: ${note.tags.map((t) => `#${t}`).join(' ')}`);
+    headerLines.push(
+      t(
+        'exportImport.plainTags',
+        { tags: note.tags.map((tag) => `#${tag}`).join(' ') },
+        locale,
+      ),
+    );
   }
 
   const parts: string[] = [headerLines.join('\n'), '---'];
 
   note.sections.forEach((sec, idx) => {
-    parts.push(`[Bagian ${idx + 1} — Cue]`);
-    parts.push(sec.cue.trim() || '(kosong)');
+    parts.push(t('exportImport.plainSectionCue', { num: idx + 1 }, locale));
+    parts.push(sec.cue.trim() || t('exportImport.plainEmpty', undefined, locale));
     parts.push('');
-    parts.push(`[Bagian ${idx + 1} — Notes]`);
-    parts.push(sec.notes.trim() || '(kosong)');
+    parts.push(t('exportImport.plainSectionNotes', { num: idx + 1 }, locale));
+    parts.push(sec.notes.trim() || t('exportImport.plainEmpty', undefined, locale));
     parts.push('---');
   });
 
-  parts.push('[Ringkasan]');
-  parts.push(note.summary.trim() || '(belum ada ringkasan)');
+  parts.push(t('exportImport.plainSummaryHeading', undefined, locale));
+  parts.push(
+    note.summary.trim() || t('exportImport.plainNoSummary', undefined, locale),
+  );
 
   return parts.join('\n');
 }
@@ -157,7 +185,7 @@ function parseStatus(raw?: string): NoteStatus {
 
 export function markdownToNote(
   markdown: string,
-  fallbackTitle = 'Catatan Impor',
+  fallbackTitle = t('common.importedFallbackTitle'),
 ): CreateNoteInput {
   const { meta, body } = parseFrontmatter(markdown);
   const lines = body.split('\n');
@@ -186,13 +214,13 @@ export function markdownToNote(
   const sections: Array<{ cue: string; notes: string }> = [];
   let summary = '';
 
-  // Case 1: Cornelieu structured format (`### Bagian` + `#### Cue` / `#### Notes`)
-  if (/^###\s+Bagian\s+\d+/m.test(trimmedBody)) {
+  // Case 1: Cornelieu structured format (`### Bagian` / `### Section` + `#### Cue` / `#### Notes`)
+  if (/^###\s+(?:Bagian|Section)\s+\d+/m.test(trimmedBody)) {
     const summarySplit = trimmedBody.split(/^##\s+(?:Summary|Ringkasan)\s*$/m);
     const mainPart = summarySplit[0] ?? '';
     summary = (summarySplit[1] ?? '').trim();
 
-    const sectionChunks = mainPart.split(/^###\s+Bagian\s+\d+\s*$/m).slice(1);
+    const sectionChunks = mainPart.split(/^###\s+(?:Bagian|Section)\s+\d+\s*$/m).slice(1);
     for (const chunk of sectionChunks) {
       const cueMatch = chunk.match(
         /####\s+Cue\s*\n([\s\S]*?)(?=\n####\s+Notes\b|$)/i,
@@ -266,32 +294,32 @@ export function parseAndValidateBackup(rawJson: string): BackupParseResult {
   try {
     parsed = JSON.parse(rawJson);
   } catch {
-    return { ok: false, error: 'File JSON tidak valid atau rusak.' };
+    return { ok: false, error: t('exportImport.errInvalidJson') };
   }
 
   if (!parsed || typeof parsed !== 'object') {
-    return { ok: false, error: 'Format cadangan harus berupa objek JSON.' };
+    return { ok: false, error: t('exportImport.errNotObject') };
   }
 
   const obj = parsed as Record<string, unknown>;
   if (obj.app !== 'Cornelieu X Notes') {
     return {
       ok: false,
-      error: 'File cadangan bukan berasal dari Cornelieu X Notes.',
+      error: t('exportImport.errWrongApp'),
     };
   }
 
   if (obj.schemaVersion !== 1) {
     return {
       ok: false,
-      error: 'Versi skema cadangan tidak didukung.',
+      error: t('exportImport.errUnsupportedVersion'),
     };
   }
 
   if (!Array.isArray(obj.notes) || !Array.isArray(obj.notebooks)) {
     return {
       ok: false,
-      error: 'Struktur catatan atau notebook pada file cadangan tidak lengkap.',
+      error: t('exportImport.errIncompleteStructure'),
     };
   }
 
@@ -299,15 +327,15 @@ export function parseAndValidateBackup(rawJson: string): BackupParseResult {
   const normalizedNotebooks: Notebook[] = [];
   for (const nb of obj.notebooks) {
     if (!nb || typeof nb !== 'object') {
-      return { ok: false, error: 'Terdapat entri notebook yang tidak valid.' };
+      return { ok: false, error: t('exportImport.errInvalidNotebookEntry') };
     }
     const item = nb as Record<string, unknown>;
     if (typeof item.id !== 'string' || typeof item.name !== 'string') {
-      return { ok: false, error: 'Notebook pada cadangan kehilangan id atau nama.' };
+      return { ok: false, error: t('exportImport.errMissingNotebookFields') };
     }
     normalizedNotebooks.push({
       id: item.id,
-      name: item.name.trim() || 'Notebook Tanpa Nama',
+      name: item.name.trim() || t('exportImport.unnamedNotebook'),
       description: typeof item.description === 'string' ? item.description : '',
       createdAt: typeof item.createdAt === 'number' ? item.createdAt : now,
       updatedAt: typeof item.updatedAt === 'number' ? item.updatedAt : now,
@@ -317,13 +345,13 @@ export function parseAndValidateBackup(rawJson: string): BackupParseResult {
   const normalizedNotes: CornellNote[] = [];
   for (const rawNote of obj.notes) {
     if (!rawNote || typeof rawNote !== 'object') {
-      return { ok: false, error: 'Terdapat entri catatan yang tidak valid.' };
+      return { ok: false, error: t('exportImport.errInvalidNoteEntry') };
     }
     const item = rawNote as Record<string, unknown>;
     if (typeof item.id !== 'string' || !Array.isArray(item.sections)) {
       return {
         ok: false,
-        error: 'Catatan pada cadangan kehilangan id atau bagian Cornell.',
+        error: t('exportImport.errMissingNoteFields'),
       };
     }
     normalizedNotes.push({
@@ -380,6 +408,8 @@ export function parseAndValidateBackup(rawJson: string): BackupParseResult {
         ? rawPrefs.defaultLayout
         : 'auto',
     seededSampleNote: true,
+    locale:
+      rawPrefs.locale === 'id' || rawPrefs.locale === 'en' ? rawPrefs.locale : null,
   };
 
   return {

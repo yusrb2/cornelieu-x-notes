@@ -24,6 +24,7 @@ import {
   savePreferences,
 } from '../db/preferencesRepository';
 import { ensureInitialSeed } from '../db/seed';
+import { initLocaleFromPreferences, setLocale, t } from '../i18n';
 import type {
   CornellNote,
   Notebook,
@@ -98,6 +99,7 @@ export async function reloadLibraryFromDb(): Promise<void> {
   notesSignal.value = notes;
   notebooksSignal.value = notebooks;
   prefsSignal.value = prefs;
+  initLocaleFromPreferences(prefs.locale);
   setThemeSettings({
     themeMode: prefs.themeMode,
     fontScale: prefs.fontScale,
@@ -106,7 +108,12 @@ export async function reloadLibraryFromDb(): Promise<void> {
 }
 
 export async function initStore(): Promise<void> {
-  await ensureInitialSeed();
+  const initialPrefs = await getPreferences();
+  const detectedLocale = initLocaleFromPreferences(initialPrefs.locale);
+  if (initialPrefs.locale === null) {
+    await savePreferences({ locale: detectedLocale });
+  }
+  await ensureInitialSeed(detectedLocale);
   await reloadLibraryFromDb();
   isHydratedSignal.value = true;
 }
@@ -260,8 +267,8 @@ export async function softDeleteNoteAction(id: string): Promise<void> {
   }
 
   showUndoBanner({
-    message: 'Catatan dipindahkan ke Sampah',
-    actionLabel: 'Urungkan',
+    message: t('store.movedToTrash'),
+    actionLabel: t('common.undo'),
     onUndo: async () => {
       await restoreNoteAction(id);
     },
@@ -307,8 +314,10 @@ export async function toggleArchiveAction(id: string): Promise<void> {
     activeNoteIdSignal.value = null;
   }
   showUndoBanner({
-    message: updated.archived ? 'Catatan diarsipkan' : 'Catatan dikembalikan dari Arsip',
-    actionLabel: 'Urungkan',
+    message: updated.archived
+      ? t('store.archivedNotice')
+      : t('store.unarchivedNotice'),
+    actionLabel: t('common.undo'),
     onUndo: async () => {
       const reverted = await toggleArchiveNote(id);
       if (reverted) replaceNoteInSignal(reverted);
@@ -350,8 +359,14 @@ export async function deleteNotebookAction(id: string): Promise<void> {
 export async function updatePreferencesAction(
   patch: Partial<Omit<UserPreferences, 'key'>>,
 ): Promise<UserPreferences> {
+  if (patch.locale === 'id' || patch.locale === 'en') {
+    setLocale(patch.locale);
+  }
   const next = await savePreferences(patch);
   prefsSignal.value = next;
+  if (patch.locale === undefined) {
+    initLocaleFromPreferences(next.locale);
+  }
   setThemeSettings({
     themeMode: next.themeMode,
     fontScale: next.fontScale,

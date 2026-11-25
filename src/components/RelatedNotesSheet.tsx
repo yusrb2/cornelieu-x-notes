@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
+import { t } from '../i18n';
 import { notesSignal, setRelatedNotesAction } from '../state/store';
 import type { CornellNote } from '../types/models';
 import { extractWikiLinks } from '../utils/markdown';
@@ -104,13 +105,13 @@ export function RelatedNotesSheet({
             className="cx-heading"
             style={{ margin: 0, fontSize: 'var(--cx-text-lg)', fontWeight: 600 }}
           >
-            Catatan Terkait
+            {t('related.title')}
           </h2>
           <button
             type="button"
             className="cx-touch cx-interactive"
             onClick={onClose}
-            aria-label="Tutup panel catatan terkait"
+            aria-label={t('related.closeAria')}
             style={{
               border: 'none',
               background: 'transparent',
@@ -131,11 +132,11 @@ export function RelatedNotesSheet({
               marginBottom: '0.35rem',
             }}
           >
-            Terhubung ({directLinked.length})
+            {t('related.linkedCount', { count: directLinked.length })}
           </div>
           {directLinked.length === 0 ? (
             <div style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-muted)' }}>
-              Belum ada referensi langsung. Pilih catatan di daftar bawah untuk menautkan.
+              {t('related.noDirectLinks')}
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -173,13 +174,15 @@ export function RelatedNotesSheet({
                     }}
                   >
                     <LinkIcon size={15} />
-                    <span>{target.title.trim() || 'Catatan Tanpa Judul'}</span>
+                    <span>{target.title.trim() || t('common.untitledNote')}</span>
                   </button>
                   <button
                     type="button"
                     className="cx-touch cx-interactive"
                     onClick={() => toggleLink(target.id)}
-                    aria-label={`Putuskan tautan ke ${target.title || 'catatan'}`}
+                    aria-label={t('related.unlinkAria', {
+                      title: target.title || t('common.untitledNote'),
+                    })}
                     style={{
                       border: 'none',
                       background: 'transparent',
@@ -205,7 +208,7 @@ export function RelatedNotesSheet({
                 marginBottom: '0.35rem',
               }}
             >
-              Menyebut Catatan Ini ({backlinks.length})
+              {t('related.backlinksCount', { count: backlinks.length })}
             </div>
             {backlinks.map((target) => (
               <button
@@ -228,7 +231,7 @@ export function RelatedNotesSheet({
                   color: 'var(--cx-ink)',
                 }}
               >
-                {target.title.trim() || 'Catatan Tanpa Judul'}
+                {target.title.trim() || t('common.untitledNote')}
               </button>
             ))}
           </div>
@@ -244,14 +247,14 @@ export function RelatedNotesSheet({
               marginBottom: '0.4rem',
             }}
           >
-            Tautkan atau Lepas Catatan Lain
+            {t('related.pickerHeading')}
           </div>
           <input
             type="search"
             value={filterText}
             onInput={(e) => setFilterText(e.currentTarget.value)}
-            placeholder="Saring judul atau topik catatan..."
-            aria-label="Saring daftar catatan untuk ditautkan"
+            placeholder={t('related.filterPlaceholder')}
+            aria-label={t('related.filterAria')}
             style={{
               width: '100%',
               minHeight: '42px',
@@ -267,7 +270,7 @@ export function RelatedNotesSheet({
           <div style={{ maxHeight: '220px', overflowY: 'auto' }}>
             {candidateNotes.length === 0 ? (
               <div style={{ paddingBlock: '0.75rem', fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-muted)' }}>
-                Tidak ada catatan lain yang cocok.
+                {t('related.noMatches')}
               </div>
             ) : (
               candidateNotes.map((cand) => {
@@ -294,7 +297,7 @@ export function RelatedNotesSheet({
                   >
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: 'var(--cx-text-sm)', fontWeight: 500 }}>
-                        {cand.title.trim() || 'Catatan Tanpa Judul'}
+                        {cand.title.trim() || t('common.untitledNote')}
                       </div>
                       {cand.subject.trim() && (
                         <div style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-muted)' }}>

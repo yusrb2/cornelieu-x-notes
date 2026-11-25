@@ -1,7 +1,8 @@
 import { useEffect } from 'preact/hooks';
+import { t, type TranslationKey } from '../i18n';
 import { scheduleNoteAutoSave } from '../state/store';
 import type { CornellNote, ReviewPriority } from '../types/models';
-import { formatFullDate } from '../utils/format';
+import { formatFullDate, formatPriorityLabel } from '../utils/format';
 import { addDays, formatReviewDueLabel } from '../utils/spacedRepetition';
 import { CloseIcon } from './Icons';
 
@@ -11,13 +12,13 @@ interface ReviewScheduleSheetProps {
   onClose: () => void;
 }
 
-const INTERVAL_CHOICES = [
-  { days: 0, label: 'Hari ini' },
-  { days: 1, label: 'Besok (1h)' },
-  { days: 3, label: '3 hari' },
-  { days: 7, label: '7 hari' },
-  { days: 14, label: '14 hari' },
-  { days: 30, label: '30 hari' },
+const INTERVAL_CHOICES: Array<{ days: number; labelKey: TranslationKey }> = [
+  { days: 0, labelKey: 'reviewSchedule.choices.today' },
+  { days: 1, labelKey: 'reviewSchedule.choices.tomorrow' },
+  { days: 3, labelKey: 'reviewSchedule.choices.days3' },
+  { days: 7, labelKey: 'reviewSchedule.choices.days7' },
+  { days: 14, labelKey: 'reviewSchedule.choices.days14' },
+  { days: 30, labelKey: 'reviewSchedule.choices.days30' },
 ];
 
 export function ReviewScheduleSheet({
@@ -74,13 +75,13 @@ export function ReviewScheduleSheet({
             className="cx-heading"
             style={{ margin: 0, fontSize: 'var(--cx-text-lg)', fontWeight: 600 }}
           >
-            Jadwal Review Berkala
+            {t('reviewSchedule.title')}
           </h2>
           <button
             type="button"
             className="cx-touch cx-interactive"
             onClick={onClose}
-            aria-label="Tutup pengaturan jadwal review"
+            aria-label={t('reviewSchedule.closeAria')}
             style={{
               border: 'none',
               background: 'transparent',
@@ -105,10 +106,10 @@ export function ReviewScheduleSheet({
           >
             <div>
               <div style={{ fontWeight: 600, fontSize: 'var(--cx-text-sm)' }}>
-                Aktifkan Pengulangan Terjadwal
+                {t('reviewSchedule.enableTitle')}
               </div>
               <div style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-muted)', marginTop: '2px' }}>
-                Masukkan catatan ke antrean harian Active Recall.
+                {t('reviewSchedule.enableDesc')}
               </div>
             </div>
 
@@ -137,7 +138,7 @@ export function ReviewScheduleSheet({
                 fontWeight: 600,
               }}
             >
-              {review.enabled ? 'Aktif' : 'Nonaktif'}
+              {review.enabled ? t('reviewSchedule.active') : t('reviewSchedule.inactive')}
             </button>
           </div>
 
@@ -151,40 +152,34 @@ export function ReviewScheduleSheet({
                 marginBottom: '0.45rem',
               }}
             >
-              Prioritas Review
+              {t('reviewSchedule.priorityLabel')}
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
-              {(
-                [
-                  { id: 'low', label: 'Rendah' },
-                  { id: 'normal', label: 'Normal' },
-                  { id: 'high', label: 'Tinggi' },
-                ] as Array<{ id: ReviewPriority; label: string }>
-              ).map((item) => {
-                const active = review.priority === item.id;
+              {(['low', 'normal', 'high'] as ReviewPriority[]).map((priorityId) => {
+                const active = review.priority === priorityId;
                 return (
                   <button
-                    key={item.id}
+                    key={priorityId}
                     type="button"
-                    onClick={() => patchReview({ priority: item.id })}
+                    onClick={() => patchReview({ priority: priorityId })}
                     style={{
                       flex: '1 1 0%',
                       minHeight: '42px',
                       borderRadius: 'var(--cx-radius-md)',
                       border: `1px solid ${
                         active
-                          ? item.id === 'high'
+                          ? priorityId === 'high'
                             ? 'var(--cx-accent-warm)'
                             : 'var(--cx-accent)'
                           : 'var(--cx-border)'
                       }`,
                       backgroundColor: active
-                        ? item.id === 'high'
+                        ? priorityId === 'high'
                           ? 'var(--cx-accent-warm-soft)'
                           : 'var(--cx-accent-soft)'
                         : 'var(--cx-bg)',
                       color: active
-                        ? item.id === 'high'
+                        ? priorityId === 'high'
                           ? 'var(--cx-accent-warm-on-soft)'
                           : 'var(--cx-accent-on-soft)'
                         : 'var(--cx-ink-secondary)',
@@ -192,7 +187,7 @@ export function ReviewScheduleSheet({
                       fontWeight: active ? 600 : 500,
                     }}
                   >
-                    {item.label}
+                    {formatPriorityLabel(priorityId)}
                   </button>
                 );
               })}
@@ -209,7 +204,7 @@ export function ReviewScheduleSheet({
                 marginBottom: '0.45rem',
               }}
             >
-              Jadwalkan Ulang Dari Sekarang
+              {t('reviewSchedule.rescheduleLabel')}
             </div>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               {INTERVAL_CHOICES.map((choice) => (
@@ -235,7 +230,7 @@ export function ReviewScheduleSheet({
                     color: 'var(--cx-ink-secondary)',
                   }}
                 >
-                  {choice.label}
+                  {t(choice.labelKey)}
                 </button>
               ))}
             </div>
@@ -255,15 +250,18 @@ export function ReviewScheduleSheet({
             }}
           >
             <div>
-              Jadwal berikutnya:{' '}
+              {t('reviewSchedule.nextScheduleLabel')}{' '}
               <strong className="cx-mono cx-tabular" style={{ color: 'var(--cx-ink)' }}>
                 {review.nextReviewAt
                   ? `${dueInfo.label} (${formatFullDate(review.nextReviewAt)})`
-                  : 'Belum dijadwalkan'}
+                  : t('reviewSchedule.notScheduled')}
               </strong>
             </div>
             <div className="cx-mono cx-tabular">
-              Interval saat ini: {review.intervalDays} hari · Pengulangan: {review.repetitions}×
+              {t('reviewSchedule.intervalStats', {
+                days: review.intervalDays,
+                reps: review.repetitions,
+              })}
             </div>
           </div>
         </div>

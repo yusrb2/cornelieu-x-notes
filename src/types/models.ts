@@ -1,6 +1,7 @@
+import type { Locale } from '../i18n';
 import type { DefaultLayout, FontScale, TabId, ThemeMode } from '../state/theme';
 
-export type { DefaultLayout, FontScale, TabId, ThemeMode };
+export type { DefaultLayout, FontScale, Locale, TabId, ThemeMode };
 
 export type NoteStatus = 'draft' | 'needs_review' | 'completed';
 export type ReviewPriority = 'low' | 'normal' | 'high';
@@ -56,6 +57,7 @@ export interface UserPreferences {
   fontScale: FontScale;
   defaultLayout: DefaultLayout;
   seededSampleNote: boolean;
+  locale: Locale | null;
 }
 
 export interface BackupPayload {

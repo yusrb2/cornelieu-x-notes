@@ -1,32 +1,27 @@
+import {
+  formatLocaleDateFull,
+  formatLocaleDateShort,
+  t,
+  type Locale,
+} from '../i18n';
 import type { NoteStatus, ReviewPriority } from '../types/models';
 
-const SHORT_DATE_FORMAT = new Intl.DateTimeFormat('id-ID', {
-  day: 'numeric',
-  month: 'short',
-});
-
-const FULL_DATE_FORMAT = new Intl.DateTimeFormat('id-ID', {
-  day: 'numeric',
-  month: 'short',
-  year: 'numeric',
-});
-
-export function formatShortDate(timestamp: number): string {
-  return SHORT_DATE_FORMAT.format(new Date(timestamp));
+export function formatShortDate(timestamp: number, locale?: Locale): string {
+  return formatLocaleDateShort(timestamp, locale);
 }
 
-export function formatFullDate(timestamp: number): string {
-  return FULL_DATE_FORMAT.format(new Date(timestamp));
+export function formatFullDate(timestamp: number, locale?: Locale): string {
+  return formatLocaleDateFull(timestamp, locale);
 }
 
-export function formatStatusLabel(status: NoteStatus): string {
+export function formatStatusLabel(status: NoteStatus, locale?: Locale): string {
   switch (status) {
     case 'draft':
-      return 'Draft';
+      return t('status.draft', undefined, locale);
     case 'needs_review':
-      return 'Perlu Review';
+      return t('status.needs_review', undefined, locale);
     case 'completed':
-      return 'Selesai';
+      return t('status.completed', undefined, locale);
   }
 }
 
@@ -36,13 +31,13 @@ export function nextNoteStatus(status: NoteStatus): NoteStatus {
   return 'draft';
 }
 
-export function formatPriorityLabel(priority: ReviewPriority): string {
+export function formatPriorityLabel(priority: ReviewPriority, locale?: Locale): string {
   switch (priority) {
     case 'high':
-      return 'Tinggi';
+      return t('priority.high', undefined, locale);
     case 'normal':
-      return 'Normal';
+      return t('priority.normal', undefined, locale);
     case 'low':
-      return 'Rendah';
+      return t('priority.low', undefined, locale);
   }
 }

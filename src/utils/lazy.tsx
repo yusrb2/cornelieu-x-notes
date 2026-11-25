@@ -1,9 +1,10 @@
 import type { ComponentType, FunctionComponent } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
+import { t, type TranslationKey } from '../i18n';
 
 export function lazyComponent<P extends object>(
   loader: () => Promise<{ default: ComponentType<P> }>,
-  fallbackText = 'Memuat tampilan...',
+  fallbackKey: TranslationKey = 'app.loadingView',
 ): FunctionComponent<P> {
   let cached: ComponentType<P> | null = null;
 
@@ -36,7 +37,7 @@ export function lazyComponent<P extends object>(
           role="status"
           aria-live="polite"
         >
-          {fallbackText}
+          {t(fallbackKey)}
         </div>
       );
     }

@@ -1,3 +1,4 @@
+import { t, type Locale } from '../i18n';
 import type { CornellNote, ReviewMeta, ReviewPriority } from '../types/models';
 
 export const INTERVAL_LADDER = [1, 3, 7, 14, 30, 60] as const;
@@ -90,9 +91,14 @@ export function snoozeReview(
 export function formatReviewDueLabel(
   nextReviewAt: number | null,
   now = Date.now(),
+  locale?: Locale,
 ): { label: string; isOverdue: boolean; isToday: boolean } {
   if (nextReviewAt === null) {
-    return { label: 'Belum dijadwalkan', isOverdue: false, isToday: false };
+    return {
+      label: t('reviewSchedule.notScheduled', undefined, locale),
+      isOverdue: false,
+      isToday: false,
+    };
   }
 
   const todayStart = startOfLocalDay(now);
@@ -101,19 +107,27 @@ export function formatReviewDueLabel(
 
   if (diffDays < 0) {
     return {
-      label: `Terlambat ${Math.abs(diffDays)}h`,
+      label: t('reviewSchedule.dueOverdue', { days: Math.abs(diffDays) }, locale),
       isOverdue: true,
       isToday: false,
     };
   }
   if (diffDays === 0) {
-    return { label: 'Hari ini', isOverdue: false, isToday: true };
+    return {
+      label: t('reviewSchedule.dueToday', undefined, locale),
+      isOverdue: false,
+      isToday: true,
+    };
   }
   if (diffDays === 1) {
-    return { label: 'Besok', isOverdue: false, isToday: false };
+    return {
+      label: t('reviewSchedule.dueTomorrow', undefined, locale),
+      isOverdue: false,
+      isToday: false,
+    };
   }
   return {
-    label: `${diffDays} hari lagi`,
+    label: t('reviewSchedule.dueInDays', { days: diffDays }, locale),
     isOverdue: false,
     isToday: false,
   };

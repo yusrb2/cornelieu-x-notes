@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import {
   dismissUndoBanner,
   triggerUndoBanner,
@@ -64,7 +65,7 @@ export function UndoSnackbar({ aboveEditorBar = false }: UndoSnackbarProps) {
         <button
           type="button"
           onClick={dismissUndoBanner}
-          aria-label="Tutup pemberitahuan"
+          aria-label={t('common.closeNoticeAria')}
           style={{
             width: '36px',
             height: '36px',

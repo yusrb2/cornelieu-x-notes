@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'preact/hooks';
 import { collectTagCounts } from '../db/notesRepository';
+import { t, type TranslationKey } from '../i18n';
 import { notebooksSignal, notesSignal } from '../state/store';
 import type { NoteStatus } from '../types/models';
 import { formatShortDate, formatStatusLabel } from '../utils/format';
@@ -10,13 +11,13 @@ interface SearchViewProps {
   onOpenNote: (id: string) => void;
 }
 
-const MATCH_FIELD_LABELS: Record<SearchMatchField, string> = {
-  title: 'Judul',
-  subject: 'Topik',
-  cue: 'Cue',
-  notes: 'Notes',
-  summary: 'Ringkasan',
-  tag: 'Tag',
+const MATCH_FIELD_KEYS: Record<SearchMatchField, TranslationKey> = {
+  title: 'search.fields.title',
+  subject: 'search.fields.subject',
+  cue: 'search.fields.cue',
+  notes: 'search.fields.notes',
+  summary: 'search.fields.summary',
+  tag: 'search.fields.tag',
 };
 
 export function SearchView({ onOpenNote }: SearchViewProps) {
@@ -72,8 +73,8 @@ export function SearchView({ onOpenNote }: SearchViewProps) {
           type="search"
           value={query}
           onInput={(e) => setQuery(e.currentTarget.value)}
-          placeholder="Cari judul, cue, isi notes, ringkasan, atau tag..."
-          aria-label="Cari catatan"
+          placeholder={t('search.placeholder')}
+          aria-label={t('search.inputAria')}
           style={{
             flex: '1 1 auto',
             minWidth: 0,
@@ -88,7 +89,7 @@ export function SearchView({ onOpenNote }: SearchViewProps) {
             type="button"
             className="cx-interactive"
             onClick={() => setQuery('')}
-            aria-label="Bersihkan kata kunci pencarian"
+            aria-label={t('search.clearAria')}
             style={{
               width: '36px',
               height: '36px',
@@ -118,14 +119,14 @@ export function SearchView({ onOpenNote }: SearchViewProps) {
         >
           {(
             [
-              { value: null, label: 'Semua Status' },
-              { value: 'draft', label: 'Draft' },
-              { value: 'needs_review', label: 'Perlu Review' },
-              { value: 'completed', label: 'Selesai' },
+              { value: null, label: t('search.allStatuses') },
+              { value: 'draft', label: formatStatusLabel('draft') },
+              { value: 'needs_review', label: formatStatusLabel('needs_review') },
+              { value: 'completed', label: formatStatusLabel('completed') },
             ] as Array<{ value: NoteStatus | null; label: string }>
           ).map((item) => (
             <button
-              key={item.label}
+              key={item.value ?? 'all'}
               type="button"
               onClick={() => setSelectedStatus(item.value)}
               style={filterChipStyle(selectedStatus === item.value)}
@@ -137,7 +138,7 @@ export function SearchView({ onOpenNote }: SearchViewProps) {
           <select
             value={selectedNotebookId ?? ''}
             onChange={(e) => setSelectedNotebookId(e.currentTarget.value || null)}
-            aria-label="Filter berdasarkan notebook"
+            aria-label={t('search.notebookFilterAria')}
             style={{
               minHeight: '36px',
               padding: '0 10px',
@@ -148,7 +149,7 @@ export function SearchView({ onOpenNote }: SearchViewProps) {
               color: 'var(--cx-ink-secondary)',
             }}
           >
-            <option value="">Semua Notebook</option>
+            <option value="">{t('search.allNotebooks')}</option>
             {notebooks.map((nb) => (
               <option key={nb.id} value={nb.id}>
                 {nb.name}
@@ -162,7 +163,7 @@ export function SearchView({ onOpenNote }: SearchViewProps) {
             aria-pressed={includeArchived}
             style={filterChipStyle(includeArchived)}
           >
-            Sertakan Arsip
+            {t('search.includeArchived')}
           </button>
 
           {hasActiveFilter && (
@@ -185,7 +186,7 @@ export function SearchView({ onOpenNote }: SearchViewProps) {
                 fontWeight: 600,
               }}
             >
-              Reset
+              {t('search.resetFilters')}
             </button>
           )}
         </div>
@@ -223,17 +224,17 @@ export function SearchView({ onOpenNote }: SearchViewProps) {
           borderBottom: '1px solid var(--cx-border)',
         }}
       >
-        {results.length} hasil ditemukan
+        {t('search.resultsCount', { count: results.length })}
       </div>
 
       {/* Results List */}
       {results.length === 0 ? (
         <div style={{ paddingBlock: '2rem', color: 'var(--cx-ink-secondary)' }}>
           <div className="cx-heading" style={{ fontSize: 'var(--cx-text-lg)', fontWeight: 600 }}>
-            Tidak ada catatan yang cocok
+            {t('search.emptyTitle')}
           </div>
           <p className="cx-prose" style={{ marginTop: '0.35rem', fontSize: 'var(--cx-text-sm)' }}>
-            Coba kata kunci lebih pendek atau hapus sebagian filter tag dan status.
+            {t('search.emptyDesc')}
           </p>
         </div>
       ) : (
@@ -269,7 +270,7 @@ export function SearchView({ onOpenNote }: SearchViewProps) {
                   className="cx-heading"
                   style={{ fontSize: 'var(--cx-text-base)', fontWeight: 600 }}
                 >
-                  {res.note.title.trim() || 'Catatan Tanpa Judul'}
+                  {res.note.title.trim() || t('common.untitledNote')}
                 </span>
                 <span
                   className="cx-mono cx-tabular"
@@ -300,8 +301,8 @@ export function SearchView({ onOpenNote }: SearchViewProps) {
                   <>
                     <span aria-hidden="true">·</span>
                     <span style={{ color: 'var(--cx-accent)' }}>
-                      Cocok di{' '}
-                      {res.matchedIn.map((m) => MATCH_FIELD_LABELS[m]).join(', ')}
+                      {t('search.matchedInPrefix')}{' '}
+                      {res.matchedIn.map((m) => t(MATCH_FIELD_KEYS[m])).join(', ')}
                     </span>
                   </>
                 )}

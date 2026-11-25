@@ -1,4 +1,5 @@
 import { h, type JSX } from 'preact';
+import { t } from '../i18n';
 
 export interface MarkdownRenderOptions {
   onToggleCheckbox?: (lineIndex: number) => void;
@@ -179,7 +180,7 @@ export function renderMarkdown(
           fontSize: 'var(--cx-text-sm)',
         },
       },
-      options.emptyFallback ?? 'Belum ada catatan.',
+      options.emptyFallback ?? t('editor.emptyNotes'),
     );
   }
 
@@ -366,7 +367,10 @@ export function renderMarkdown(
                     type: 'button',
                     role: 'checkbox',
                     'aria-checked': checked,
-                    'aria-label': `${checked ? 'Batalkan centang' : 'Centang'} tugas: ${textPart}`,
+                    'aria-label': t(
+                      checked ? 'editor.uncheckTaskAria' : 'editor.checkTaskAria',
+                      { task: textPart },
+                    ),
                     onClick: () => options.onToggleCheckbox?.(currentLineIdx),
                     style: {
                       marginTop: '3px',

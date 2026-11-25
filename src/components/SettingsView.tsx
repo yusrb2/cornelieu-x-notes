@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'preact/hooks';
 import { restoreBackup, type RestoreMode } from '../db/backupRepository';
 import { collectAllTags } from '../db/notesRepository';
+import { formatLocaleNumber, localeSignal, t, type Locale } from '../i18n';
 import {
   activeNotesListSignal,
   archivedNotesSignal,
@@ -70,7 +71,10 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
     );
     setStatusMessage({
       kind: 'ok',
-      text: `Cadangan penuh (${payload.notes.length} catatan, ${payload.notebooks.length} notebook) diunduh.`,
+      text: t('settings.exportSuccess', {
+        notes: payload.notes.length,
+        notebooks: payload.notebooks.length,
+      }),
     });
   };
 
@@ -101,8 +105,14 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
       kind: 'ok',
       text:
         mode === 'replace'
-          ? `Cadangan dipulihkan (${res.notesImported} catatan, ${res.notebooksImported} notebook).`
-          : `Cadangan digabungkan (${res.notesImported} catatan, ${res.notebooksImported} notebook diperbarui).`,
+          ? t('settings.restoreReplaceSuccess', {
+              notes: res.notesImported,
+              notebooks: res.notebooksImported,
+            })
+          : t('settings.restoreMergeSuccess', {
+              notes: res.notesImported,
+              notebooks: res.notebooksImported,
+            }),
     });
   };
 
@@ -113,16 +123,20 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
     if (!file) return;
 
     const raw = await file.text();
-    const fallbackTitle = file.name.replace(/\.(md|markdown)$/i, '').trim() || 'Catatan Impor';
+    const fallbackTitle =
+      file.name.replace(/\.(md|markdown)$/i, '').trim() ||
+      t('common.importedFallbackTitle');
     const noteInput = markdownToNote(raw, fallbackTitle);
     const created = await createNewNoteAction(noteInput);
     onOpenImportedNote(created.id);
   };
 
+  const activeLocale = localeSignal.value;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       {/* Appearance & Reading Comfort */}
-      <section aria-label="Tampilan dan kenyamanan membaca">
+      <section aria-label={t('settings.appearanceAria')}>
         <h2
           className="cx-heading"
           style={{
@@ -133,19 +147,50 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
             fontWeight: 600,
           }}
         >
-          Tampilan & Kenyamanan Membaca
+          {t('settings.appearanceHeading')}
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.9rem' }}>
-          {/* Theme */}
+          {/* Language */}
           <div>
-            <div style={labelStyle()}>Tema Permukaan</div>
+            <div style={labelStyle()}>{t('settings.languageLabel')}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
               {(
                 [
-                  { id: 'system', label: 'Ikuti Sistem' },
-                  { id: 'light', label: 'Terang' },
-                  { id: 'dark', label: 'Gelap' },
+                  { id: 'id', label: t('settings.langId') },
+                  { id: 'en', label: t('settings.langEn') },
+                ] as Array<{ id: Locale; label: string }>
+              ).map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => void updatePreferencesAction({ locale: item.id })}
+                  style={segmentBtnStyle(activeLocale === item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+            <div
+              style={{
+                marginTop: '0.35rem',
+                fontSize: 'var(--cx-text-xs)',
+                color: 'var(--cx-ink-muted)',
+              }}
+            >
+              {t('settings.languageHint')}
+            </div>
+          </div>
+
+          {/* Theme */}
+          <div>
+            <div style={labelStyle()}>{t('settings.themeLabel')}</div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {(
+                [
+                  { id: 'system', label: t('settings.themeSystem') },
+                  { id: 'light', label: t('settings.themeLight') },
+                  { id: 'dark', label: t('settings.themeDark') },
                 ] as Array<{ id: ThemeMode; label: string }>
               ).map((item) => (
                 <button
@@ -162,7 +207,7 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
 
           {/* Font Scale */}
           <div>
-            <div style={labelStyle()}>Skala Ukuran Huruf</div>
+            <div style={labelStyle()}>{t('settings.fontScaleLabel')}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
               {FONT_SCALE_OPTIONS.map((opt) => (
                 <button
@@ -192,7 +237,7 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
                 className="cx-heading"
                 style={{ fontSize: 'var(--cx-text-lg)', fontWeight: 600, color: 'var(--cx-ink)' }}
               >
-                Mengunci Pemahaman dengan Metode Cornell
+                {t('settings.previewHeading')}
               </div>
               <div
                 className="cx-cue-text"
@@ -205,7 +250,7 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
                   alignSelf: 'flex-start',
                 }}
               >
-                Cue · Bagaimana ritme membaca memengaruhi retensi?
+                {t('settings.previewCue')}
               </div>
               <p
                 className="cx-prose"
@@ -215,20 +260,20 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
                   color: 'var(--cx-ink-secondary)',
                 }}
               >
-                Pratinjau keterbacaan: Metode Cornell memadukan pemicu ingatan ringkas dengan catatan terstruktur serta sintesis akhir yang nyaman dibaca lama.
+                {t('settings.previewBody')}
               </p>
             </div>
           </div>
 
           {/* Default Layout */}
           <div>
-            <div style={labelStyle()}>Tata Letak Cornell Default</div>
+            <div style={labelStyle()}>{t('settings.defaultLayoutLabel')}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
               {(
                 [
-                  { id: 'auto', label: 'Otomatis' },
-                  { id: 'stacked', label: 'Tumpuk' },
-                  { id: 'split', label: 'Belah 2 Kolom' },
+                  { id: 'auto', label: t('settings.layoutAuto') },
+                  { id: 'stacked', label: t('settings.layoutStacked') },
+                  { id: 'split', label: t('settings.layoutSplit') },
                 ] as Array<{ id: DefaultLayout; label: string }>
               ).map((item) => (
                 <button
@@ -248,7 +293,7 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
       </section>
 
       {/* Portability & Local Backups */}
-      <section aria-label="Portabilitas dan cadangan lokal">
+      <section aria-label={t('settings.portabilityAria')}>
         <h2
           className="cx-heading"
           style={{
@@ -259,7 +304,7 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
             fontWeight: 600,
           }}
         >
-          Portabilitas & Cadangan Lokal
+          {t('settings.portabilityHeading')}
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.9rem' }}>
@@ -272,10 +317,10 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
             <DownloadIcon size={18} />
             <div>
               <div style={{ fontWeight: 600, fontSize: 'var(--cx-text-sm)' }}>
-                Ekspor Cadangan Penuh (.json)
+                {t('settings.exportJsonTitle')}
               </div>
               <div style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-muted)' }}>
-                Simpan seluruh catatan, notebook, jadwal review, dan preferensi dalam satu file.
+                {t('settings.exportJsonDesc')}
               </div>
             </div>
           </button>
@@ -289,10 +334,10 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
             <UploadIcon size={18} />
             <div>
               <div style={{ fontWeight: 600, fontSize: 'var(--cx-text-sm)' }}>
-                Impor Cadangan (.json)
+                {t('settings.importJsonTitle')}
               </div>
               <div style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-muted)' }}>
-                Gabungkan dengan catatan saat ini atau pulihkan seluruh database lokal.
+                {t('settings.importJsonDesc')}
               </div>
             </div>
           </button>
@@ -313,10 +358,10 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
             <UploadIcon size={18} />
             <div>
               <div style={{ fontWeight: 600, fontSize: 'var(--cx-text-sm)' }}>
-                Impor Catatan Markdown (.md)
+                {t('settings.importMdTitle')}
               </div>
               <div style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-muted)' }}>
-                Mengubah file Markdown Cornell atau catatan biasa menjadi catatan baru.
+                {t('settings.importMdDesc')}
               </div>
             </div>
           </button>
@@ -341,13 +386,16 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
               }}
             >
               <div style={{ fontWeight: 600, fontSize: 'var(--cx-text-sm)' }}>
-                Cadangan Siap Diimpor
+                {t('settings.backupReadyTitle')}
               </div>
               <div
                 className="cx-mono cx-tabular"
                 style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-secondary)' }}
               >
-                {pendingBackup.notes.length} catatan · {pendingBackup.notebooks.length} notebook
+                {t('settings.backupSummary', {
+                  notes: pendingBackup.notes.length,
+                  notebooks: pendingBackup.notebooks.length,
+                })}
               </div>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                 <button
@@ -364,7 +412,7 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
                     fontWeight: 600,
                   }}
                 >
-                  Gabungkan (Merge)
+                  {t('settings.restoreMerge')}
                 </button>
                 <button
                   type="button"
@@ -380,7 +428,7 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
                     fontWeight: 600,
                   }}
                 >
-                  Timpa Semua (Replace)
+                  {t('settings.restoreReplace')}
                 </button>
                 <button
                   type="button"
@@ -394,7 +442,7 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
                     fontSize: 'var(--cx-text-xs)',
                   }}
                 >
-                  Batal
+                  {t('common.cancel')}
                 </button>
               </div>
             </div>
@@ -428,7 +476,7 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
       </section>
 
       {/* Local Storage Stats & About */}
-      <section aria-label="Statistik lokal dan tentang aplikasi">
+      <section aria-label={t('settings.aboutAria')}>
         <h2
           className="cx-heading"
           style={{
@@ -439,7 +487,7 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
             fontWeight: 600,
           }}
         >
-          Penyimpanan Lokal & Identitas
+          {t('settings.aboutHeading')}
         </h2>
 
         <dl
@@ -452,12 +500,12 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
           }}
         >
           {[
-            ['Catatan aktif', String(activeNotes.length)],
-            ['Diarsipkan', String(archivedNotes.length)],
-            ['Di Sampah', String(trashedNotes.length)],
-            ['Notebook', String(notebooks.length)],
-            ['Tag unik', String(uniqueTagsCount)],
-            ['Mode penyimpanan', 'IndexedDB Lokal'],
+            [t('settings.statActiveNotes'), formatLocaleNumber(activeNotes.length)],
+            [t('settings.statArchived'), formatLocaleNumber(archivedNotes.length)],
+            [t('settings.statTrash'), formatLocaleNumber(trashedNotes.length)],
+            [t('settings.statNotebooks'), formatLocaleNumber(notebooks.length)],
+            [t('settings.statUniqueTags'), formatLocaleNumber(uniqueTagsCount)],
+            [t('settings.statStorageMode'), t('settings.statStorageValue')],
           ].map(([k, v]) => (
             <div
               key={k}
@@ -496,7 +544,7 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
         >
           <img
             src="./cornelieu-icon.png"
-            alt="Cornelieu X Notes"
+            alt={t('app.name')}
             width={40}
             height={40}
             style={{
@@ -511,12 +559,10 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
           />
           <div>
             <div>
-              <strong>Cornelieu X Notes</strong> · v1.0.0 (<span className="cx-mono">com.cornelieux.notes</span>)
+              <strong>{t('app.name')}</strong> · v1.0.0 (<span className="cx-mono">com.cornelieux.notes</span>)
             </div>
-            <div>
-              100% local-first: seluruh catatan disimpan langsung di penyimpanan perangkat tanpa akun, pelacakan, atau server eksternal.
-            </div>
-            <div>Lisensi GNU GPL-3.0 · Copyright (C) 2026 Yusar Brian Sadella</div>
+            <div>{t('settings.aboutOfflineNote')}</div>
+            <div>{t('settings.aboutLicenseLine')}</div>
           </div>
         </div>
       </section>

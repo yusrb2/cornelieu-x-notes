@@ -1,5 +1,6 @@
 import type { JSX } from 'preact';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
+import { t } from '../i18n';
 import {
   closeActiveNoteOrBack,
   notebooksSignal,
@@ -121,7 +122,8 @@ export function CornellEditor({
 
   const notebooks = notebooksSignal.value;
   const notebookName =
-    notebooks.find((nb) => nb.id === note.notebookId)?.name ?? 'Tanpa Notebook';
+    notebooks.find((nb) => nb.id === note.notebookId)?.name ??
+    t('common.untitledNotebook');
 
   const commitUpdate = (patch: Partial<CornellNote>) => {
     scheduleNoteAutoSave({
@@ -199,20 +201,20 @@ export function CornellEditor({
 
     switch (snippetType) {
       case 'bold': {
-        const inner = selected || 'teks tebal';
+        const inner = selected || t('editor.formatBoldPlaceholder');
         replacement = `**${inner}**`;
         cursorOffset = selected ? replacement.length : 2;
         break;
       }
       case 'italic': {
-        const inner = selected || 'miring';
+        const inner = selected || t('editor.formatItalicPlaceholder');
         replacement = `*${inner}*`;
         cursorOffset = selected ? replacement.length : 1;
         break;
       }
       case 'h2': {
         const linePrefix = start > 0 && current[start - 1] !== '\n' ? '\n' : '';
-        replacement = `${linePrefix}## ${selected || 'Subjudul'}`;
+        replacement = `${linePrefix}## ${selected || t('editor.formatH2Placeholder')}`;
         cursorOffset = replacement.length;
         break;
       }
@@ -242,7 +244,7 @@ export function CornellEditor({
         break;
       }
       case 'link': {
-        replacement = `[[${selected || 'Judul Catatan'}]]`;
+        replacement = `[[${selected || t('editor.formatLinkPlaceholder')}]]`;
         cursorOffset = selected ? replacement.length : replacement.length - 2;
         break;
       }
@@ -262,10 +264,10 @@ export function CornellEditor({
 
   const saveLabel =
     saveStateSignal.value === 'saving'
-      ? 'Menyimpan...'
+      ? t('editor.saving')
       : saveStateSignal.value === 'error'
-        ? 'Gagal simpan'
-        : 'Tersimpan';
+        ? t('editor.saveError')
+        : t('editor.saved');
 
   if (mode === 'recall' && renderRecallView) {
     return renderRecallView({
@@ -336,7 +338,11 @@ export function CornellEditor({
                   void closeActiveNoteOrBack();
                 }
               }}
-              aria-label={isFocusMode ? 'Keluar mode fokus' : 'Kembali ke daftar catatan'}
+              aria-label={
+                isFocusMode
+                  ? t('editor.exitFocusAria')
+                  : t('editor.backToListAria')
+              }
               style={{
                 border: 'none',
                 background: 'transparent',
@@ -348,7 +354,7 @@ export function CornellEditor({
             >
               <BackIcon size={20} />
               <span style={{ fontSize: 'var(--cx-text-sm)', fontWeight: 500 }}>
-                {isFocusMode ? 'Keluar Fokus' : 'Catatan'}
+                {isFocusMode ? t('editor.exitFocus') : t('editor.backToNotes')}
               </span>
             </button>
           )}
@@ -376,7 +382,9 @@ export function CornellEditor({
                   type="button"
                   className="cx-touch cx-interactive"
                   onClick={() => void togglePinAction(note.id)}
-                  aria-label={note.pinned ? 'Lepas sematan' : 'Sematkan catatan'}
+                  aria-label={
+                    note.pinned ? t('editor.unpinAria') : t('editor.pinAria')
+                  }
                   aria-pressed={note.pinned}
                   style={{
                     border: 'none',
@@ -391,7 +399,7 @@ export function CornellEditor({
                   type="button"
                   className="cx-touch cx-interactive"
                   onClick={() => setShowOverflow(true)}
-                  aria-label="Opsi catatan lainnya"
+                  aria-label={t('editor.moreOptionsAria')}
                   style={{
                     border: 'none',
                     background: 'transparent',
@@ -431,8 +439,8 @@ export function CornellEditor({
             <AutoResizeTextarea
               value={note.title}
               onInputValue={(title) => commitUpdate({ title })}
-              placeholder="Judul catatan..."
-              ariaLabel="Judul catatan"
+              placeholder={t('editor.titlePlaceholder')}
+              ariaLabel={t('editor.titleAria')}
               minRows={1}
               className="cx-heading"
               style={{
@@ -452,7 +460,7 @@ export function CornellEditor({
                 color: 'var(--cx-ink)',
               }}
             >
-              {note.title.trim() || 'Catatan Tanpa Judul'}
+              {note.title.trim() || t('common.untitledNote')}
             </h2>
           )}
 
@@ -461,8 +469,8 @@ export function CornellEditor({
               type="text"
               value={note.subject}
               onInput={(e) => commitUpdate({ subject: e.currentTarget.value })}
-              placeholder="Mata kuliah, proyek, atau topik..."
-              aria-label="Subjek atau topik"
+              placeholder={t('editor.subjectPlaceholder')}
+              aria-label={t('editor.subjectAria')}
               style={{
                 width: '100%',
                 marginTop: '0.35rem',
@@ -515,7 +523,9 @@ export function CornellEditor({
                     onClick={() =>
                       commitUpdate({ status: nextNoteStatus(note.status) })
                     }
-                    aria-label={`Status catatan: ${formatStatusLabel(note.status)}. Ketuk untuk mengubah.`}
+                    aria-label={t('status.toggleAria', {
+                      status: formatStatusLabel(note.status),
+                    })}
                     style={{
                       minHeight: '30px',
                       padding: '2px 10px',
@@ -577,7 +587,7 @@ export function CornellEditor({
                     color: 'var(--cx-ink-secondary)',
                   }}
                 >
-                  <span>Detail</span>
+                  <span>{t('editor.detailToggle')}</span>
                   <ChevronDownIcon size={15} />
                 </button>
               </div>
@@ -604,7 +614,7 @@ export function CornellEditor({
                   >
                     <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <span style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-muted)' }}>
-                        Notebook
+                        {t('editor.notebookLabel')}
                       </span>
                       <select
                         value={note.notebookId ?? ''}
@@ -622,7 +632,7 @@ export function CornellEditor({
                           fontSize: 'var(--cx-text-sm)',
                         }}
                       >
-                        <option value="">Tanpa Notebook</option>
+                        <option value="">{t('common.untitledNotebook')}</option>
                         {notebooks.map((nb) => (
                           <option key={nb.id} value={nb.id}>
                             {nb.name}
@@ -633,7 +643,7 @@ export function CornellEditor({
 
                     <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                       <span style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-muted)' }}>
-                        Status Catatan
+                        {t('editor.statusLabel')}
                       </span>
                       <select
                         value={note.status}
@@ -651,9 +661,11 @@ export function CornellEditor({
                           fontSize: 'var(--cx-text-sm)',
                         }}
                       >
-                        <option value="draft">Draft</option>
-                        <option value="needs_review">Perlu Review</option>
-                        <option value="completed">Selesai</option>
+                        <option value="draft">{formatStatusLabel('draft')}</option>
+                        <option value="needs_review">
+                          {formatStatusLabel('needs_review')}
+                        </option>
+                        <option value="completed">{formatStatusLabel('completed')}</option>
                       </select>
                     </label>
                   </div>
@@ -667,7 +679,7 @@ export function CornellEditor({
                         marginBottom: '6px',
                       }}
                     >
-                      Tag (tekan Enter untuk menambah)
+                      {t('editor.tagsHint')}
                     </div>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', alignItems: 'center' }}>
                       {note.tags.map((tag) => (
@@ -675,7 +687,7 @@ export function CornellEditor({
                           key={tag}
                           type="button"
                           onClick={() => removeTag(tag)}
-                          aria-label={`Hapus tag ${tag}`}
+                          aria-label={t('editor.removeTagAria', { tag })}
                           className="cx-mono"
                           style={{
                             minHeight: '32px',
@@ -705,8 +717,8 @@ export function CornellEditor({
                           }
                         }}
                         onBlur={addTagFromDraft}
-                        placeholder="+ tambah tag"
-                        aria-label="Tambah tag baru"
+                        placeholder={t('editor.addTagPlaceholder')}
+                        aria-label={t('editor.addTagAria')}
                         style={{
                           minHeight: '34px',
                           minWidth: '120px',
@@ -744,7 +756,9 @@ export function CornellEditor({
                         >
                           <LinkIcon size={15} />
                           <span>
-                            Catatan Terkait ({note.relatedNoteIds.length})
+                            {t('editor.relatedNotesCount', {
+                              count: note.relatedNoteIds.length,
+                            })}
                           </span>
                         </button>
                       )}
@@ -769,8 +783,10 @@ export function CornellEditor({
                           <ClockIcon size={15} />
                           <span>
                             {note.review.enabled
-                              ? `Review tiap ${note.review.intervalDays}h`
-                              : 'Atur Jadwal Review'}
+                              ? t('editor.reviewEveryDays', {
+                                  days: note.review.intervalDays,
+                                })
+                              : t('editor.setupReviewSchedule')}
                           </span>
                         </button>
                       )}
@@ -786,7 +802,7 @@ export function CornellEditor({
         {viewportWidth < 600 && resolvedLayout === 'stacked' && !isFocusMode && (
           <div
             role="group"
-            aria-label="Fokus kolom catatan"
+            aria-label={t('editor.columnFocusAria')}
             style={{
               marginTop: '0.85rem',
               display: 'inline-flex',
@@ -799,9 +815,9 @@ export function CornellEditor({
           >
             {(
               [
-                { id: 'all', label: 'Semua' },
-                { id: 'cue', label: 'Cue Saja' },
-                { id: 'notes', label: 'Notes Saja' },
+                { id: 'all', label: t('editor.filterAll') },
+                { id: 'cue', label: t('editor.filterCueOnly') },
+                { id: 'notes', label: t('editor.filterNotesOnly') },
               ] as Array<{ id: 'all' | 'cue' | 'notes'; label: string }>
             ).map((opt) => {
               const active = mobileSectionFilter === opt.id;
@@ -862,7 +878,7 @@ export function CornellEditor({
                   color: 'var(--cx-accent-secondary-on-soft)',
                 }}
               >
-                Cue · Kata Kunci & Pertanyaan
+                {t('editor.splitCueHeader')}
               </div>
               <div
                 style={{
@@ -872,7 +888,7 @@ export function CornellEditor({
                   color: 'var(--cx-ink-secondary)',
                 }}
               >
-                Notes · Catatan Utama
+                {t('editor.splitNotesHeader')}
               </div>
             </div>
           )}
@@ -901,8 +917,8 @@ export function CornellEditor({
                       <AutoResizeTextarea
                         value={section.cue}
                         onInputValue={(cue) => updateSection(section.id, { cue })}
-                        placeholder="Kata kunci, istilah, atau pertanyaan pemicu..."
-                        ariaLabel={`Kolom Cue bagian ${idx + 1}`}
+                        placeholder={t('editor.cuePlaceholderSplit')}
+                        ariaLabel={t('editor.cueSectionAria', { num: idx + 1 })}
                         minRows={2}
                         className="cx-cue-text"
                         inputRef={{
@@ -930,7 +946,7 @@ export function CornellEditor({
                           whiteSpace: 'pre-wrap',
                         }}
                       >
-                        {section.cue.trim() || 'Belum ada cue.'}
+                        {section.cue.trim() || t('editor.emptyCue')}
                       </div>
                     )}
                   </div>
@@ -945,7 +961,7 @@ export function CornellEditor({
                       <button
                         type="button"
                         onClick={() => removeSection(section.id)}
-                        aria-label={`Hapus bagian ${idx + 1}`}
+                        aria-label={t('editor.removeSectionAria', { num: idx + 1 })}
                         style={{
                           position: 'absolute',
                           top: '6px',
@@ -970,8 +986,8 @@ export function CornellEditor({
                         <AutoResizeTextarea
                           value={section.notes}
                           onInputValue={(notes) => updateSection(section.id, { notes })}
-                          placeholder="Tulis penjelasan, daftar poin, - [ ] tugas, atau ```kode```..."
-                          ariaLabel={`Kolom Notes bagian ${idx + 1}`}
+                          placeholder={t('editor.notesPlaceholderSplit')}
+                          ariaLabel={t('editor.notesSectionAria', { num: idx + 1 })}
                           minRows={3}
                           inputRef={{
                             get current() {
@@ -996,7 +1012,7 @@ export function CornellEditor({
                               notes: toggleChecklistAtLine(section.notes, lineIndex),
                             }),
                           onOpenNoteLink: onOpenNoteByTitle,
-                          emptyFallback: 'Belum ada isi catatan.',
+                          emptyFallback: t('editor.emptyNotes'),
                         })
                       )}
                     </div>
@@ -1038,14 +1054,14 @@ export function CornellEditor({
                           marginBottom: '3px',
                         }}
                       >
-                        Cue
+                        {t('editor.cueLabel')}
                       </div>
                       {canEdit ? (
                         <AutoResizeTextarea
                           value={section.cue}
                           onInputValue={(cue) => updateSection(section.id, { cue })}
-                          placeholder="Kata kunci atau pertanyaan pemicu..."
-                          ariaLabel={`Cue bagian ${idx + 1}`}
+                          placeholder={t('editor.cuePlaceholderStacked')}
+                          ariaLabel={t('editor.cueStackedAria', { num: idx + 1 })}
                           minRows={1}
                           className="cx-cue-text"
                           inputRef={{
@@ -1072,7 +1088,7 @@ export function CornellEditor({
                             whiteSpace: 'pre-wrap',
                           }}
                         >
-                          {section.cue.trim() || 'Belum ada cue.'}
+                          {section.cue.trim() || t('editor.emptyCue')}
                         </div>
                       )}
                     </div>
@@ -1081,7 +1097,7 @@ export function CornellEditor({
                       <button
                         type="button"
                         onClick={() => removeSection(section.id)}
-                        aria-label={`Hapus bagian ${idx + 1}`}
+                        aria-label={t('editor.removeSectionAria', { num: idx + 1 })}
                         style={{
                           width: '36px',
                           height: '36px',
@@ -1111,15 +1127,15 @@ export function CornellEditor({
                         marginBottom: '4px',
                       }}
                     >
-                      Notes
+                      {t('editor.notesLabel')}
                     </div>
                     <div className="cx-measure">
                       {canEdit ? (
                         <AutoResizeTextarea
                           value={section.notes}
                           onInputValue={(notes) => updateSection(section.id, { notes })}
-                          placeholder="Tulis poin detail, - [ ] checklist, > kutipan, atau ```kode```..."
-                          ariaLabel={`Notes bagian ${idx + 1}`}
+                          placeholder={t('editor.notesPlaceholderStacked')}
+                          ariaLabel={t('editor.notesStackedAria', { num: idx + 1 })}
                           minRows={3}
                           inputRef={{
                             get current() {
@@ -1143,7 +1159,7 @@ export function CornellEditor({
                               notes: toggleChecklistAtLine(section.notes, lineIndex),
                             }),
                           onOpenNoteLink: onOpenNoteByTitle,
-                          emptyFallback: 'Belum ada isi catatan.',
+                          emptyFallback: t('editor.emptyNotes'),
                         })
                       )}
                     </div>
@@ -1174,14 +1190,14 @@ export function CornellEditor({
                 }}
               >
                 <PlusIcon size={17} />
-                <span>Tambah Bagian Cue & Notes</span>
+                <span>{t('editor.addSection')}</span>
               </button>
             </div>
           )}
 
           {/* Anchored Summary Closure Box (Soft Botanical Surface) */}
           <section
-            aria-label="Ringkasan catatan"
+            aria-label={t('editor.summaryAria')}
             style={{
               borderTop: '1.5px solid var(--cx-border-strong)',
               backgroundColor: 'var(--cx-surface-subtle)',
@@ -1199,14 +1215,14 @@ export function CornellEditor({
                   marginBottom: '0.45rem',
                 }}
               >
-                Ringkasan
+                {t('editor.summaryHeading')}
               </h3>
               {canEdit ? (
                 <AutoResizeTextarea
                   value={note.summary}
                   onInputValue={(summary) => commitUpdate({ summary })}
-                  placeholder="Tulis rangkuman inti dalam 1–3 kalimat untuk mengunci pemahaman..."
-                  ariaLabel="Ringkasan catatan"
+                  placeholder={t('editor.summaryPlaceholder')}
+                  ariaLabel={t('editor.summaryAria')}
                   minRows={2}
                   inputRef={{
                     get current() {
@@ -1230,7 +1246,7 @@ export function CornellEditor({
                       summary: toggleChecklistAtLine(note.summary, lineIndex),
                     }),
                   onOpenNoteLink: onOpenNoteByTitle,
-                  emptyFallback: 'Belum ada ringkasan penutup.',
+                  emptyFallback: t('editor.emptySummary'),
                 })
               )}
             </div>
@@ -1250,7 +1266,7 @@ export function CornellEditor({
               color: 'var(--cx-ink-secondary)',
             }}
           >
-            Mode Active Recall akan dimuat pada modul berikutnya.
+            {t('editor.fallbackRecallNotice')}
           </div>
         )}
       </div>
@@ -1279,11 +1295,11 @@ export function CornellEditor({
               { id: 'bold', label: 'B' },
               { id: 'italic', label: 'I' },
               { id: 'h2', label: 'H2' },
-              { id: 'list', label: 'Poin' },
-              { id: 'check', label: 'Tugas' },
-              { id: 'code', label: 'Kode' },
-              { id: 'quote', label: 'Kutipan' },
-              { id: 'link', label: '[[Tautan]]' },
+              { id: 'list', label: t('editor.formatButtons.list') },
+              { id: 'check', label: t('editor.formatButtons.check') },
+              { id: 'code', label: t('editor.formatButtons.code') },
+              { id: 'quote', label: t('editor.formatButtons.quote') },
+              { id: 'link', label: t('editor.formatButtons.link') },
             ].map((item) => (
               <button
                 key={item.id}
@@ -1323,7 +1339,7 @@ export function CornellEditor({
           {/* Mode Segmented Buttons */}
           <div
             role="tablist"
-            aria-label="Mode tampilan catatan"
+            aria-label={t('editor.modesAria')}
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -1335,10 +1351,10 @@ export function CornellEditor({
           >
             {(
               [
-                { id: 'edit', label: 'Tulis' },
-                { id: 'read', label: 'Baca' },
-                { id: 'recall', label: 'Recall' },
-                { id: 'focus', label: 'Fokus' },
+                { id: 'edit', label: t('editor.modes.edit') },
+                { id: 'read', label: t('editor.modes.read') },
+                { id: 'recall', label: t('editor.modes.recall') },
+                { id: 'focus', label: t('editor.modes.focus') },
               ] as Array<{ id: EditorMode; label: string }>
             ).map((item) => {
               const active = mode === item.id;
@@ -1376,7 +1392,7 @@ export function CornellEditor({
                 type="button"
                 className="cx-touch cx-interactive"
                 onClick={() => setShowFormatBar((v) => !v)}
-                aria-label="Tampilkan bilah format Markdown"
+                aria-label={t('editor.formatBarAria')}
                 aria-pressed={showFormatBar}
                 style={{
                   border: 'none',
@@ -1401,8 +1417,8 @@ export function CornellEditor({
                 }
                 aria-label={
                   resolvedLayout === 'split'
-                    ? 'Ubah ke tata letak tumpuk'
-                    : 'Ubah ke tata letak belah dua kolom'
+                    ? t('editor.switchToStackedAria')
+                    : t('editor.switchToSplitAria')
                 }
                 style={{
                   border: 'none',
@@ -1420,7 +1436,9 @@ export function CornellEditor({
                   <SplitIcon size={18} />
                 )}
                 <span className="hidden sm:inline">
-                  {resolvedLayout === 'split' ? 'Tumpuk' : 'Belah'}
+                  {resolvedLayout === 'split'
+                    ? t('editor.stackedShort')
+                    : t('editor.splitShort')}
                 </span>
               </button>
             )}
@@ -1430,7 +1448,7 @@ export function CornellEditor({
                 type="button"
                 className="cx-touch cx-interactive"
                 onClick={() => setMode('edit')}
-                aria-label="Keluar dari mode fokus"
+                aria-label={t('editor.exitFocusShortAria')}
                 style={{
                   border: 'none',
                   borderRadius: 'var(--cx-radius-md)',
@@ -1443,7 +1461,7 @@ export function CornellEditor({
                 }}
               >
                 <FocusIcon size={17} />
-                <span>Normal</span>
+                <span>{t('editor.normalLabel')}</span>
               </button>
             )}
           </div>
@@ -1476,13 +1494,13 @@ export function CornellEditor({
                 className="cx-heading"
                 style={{ margin: 0, fontSize: 'var(--cx-text-lg)', fontWeight: 600 }}
               >
-                Tindakan Catatan
+                {t('editor.overflowTitle')}
               </h2>
               <button
                 type="button"
                 className="cx-touch cx-interactive"
                 onClick={() => setShowOverflow(false)}
-                aria-label="Tutup menu"
+                aria-label={t('editor.closeMenuAria')}
                 style={{
                   border: 'none',
                   background: 'transparent',
@@ -1504,7 +1522,7 @@ export function CornellEditor({
                 style={overflowRowStyle()}
               >
                 <PinIcon size={19} filled={note.pinned} />
-                <span>{note.pinned ? 'Lepas Sematan' : 'Sematkan Catatan'}</span>
+                <span>{note.pinned ? t('editor.unpinNote') : t('editor.pinNote')}</span>
               </button>
 
               <button
@@ -1517,7 +1535,9 @@ export function CornellEditor({
                 style={overflowRowStyle()}
               >
                 <ArchiveIcon size={19} />
-                <span>{note.archived ? 'Keluarkan dari Arsip' : 'Arsipkan Catatan'}</span>
+                <span>
+                  {note.archived ? t('editor.unarchiveNote') : t('editor.archiveNote')}
+                </span>
               </button>
 
               {onOpenRelatedNotes && (
@@ -1531,7 +1551,9 @@ export function CornellEditor({
                   style={overflowRowStyle()}
                 >
                   <LinkIcon size={19} />
-                  <span>Catatan Terkait ({note.relatedNoteIds.length})</span>
+                  <span>
+                    {t('editor.relatedNotesCount', { count: note.relatedNoteIds.length })}
+                  </span>
                 </button>
               )}
 
@@ -1546,7 +1568,7 @@ export function CornellEditor({
                   style={overflowRowStyle()}
                 >
                   <ClockIcon size={19} />
-                  <span>Jadwal Review Berkala</span>
+                  <span>{t('editor.reviewSchedule')}</span>
                 </button>
               )}
 
@@ -1562,7 +1584,7 @@ export function CornellEditor({
                     style={overflowRowStyle()}
                   >
                     <DownloadIcon size={19} />
-                    <span>Ekspor sebagai Markdown (.md)</span>
+                    <span>{t('editor.exportMd')}</span>
                   </button>
                   <button
                     type="button"
@@ -1574,7 +1596,7 @@ export function CornellEditor({
                     style={overflowRowStyle()}
                   >
                     <DownloadIcon size={19} />
-                    <span>Ekspor sebagai Teks Terformat (.txt)</span>
+                    <span>{t('editor.exportTxt')}</span>
                   </button>
                   <button
                     type="button"
@@ -1586,7 +1608,7 @@ export function CornellEditor({
                     style={overflowRowStyle()}
                   >
                     <DownloadIcon size={19} />
-                    <span>Salin Teks Catatan</span>
+                    <span>{t('editor.copyPlainText')}</span>
                   </button>
                 </>
               )}
@@ -1604,7 +1626,7 @@ export function CornellEditor({
                 }}
               >
                 <TrashIcon size={19} />
-                <span>Pindahkan ke Sampah</span>
+                <span>{t('editor.moveToTrash')}</span>
               </button>
             </div>
           </div>

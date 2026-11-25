@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'preact/hooks';
+import { t } from '../i18n';
 import type { CornellNote, RecallConfidence } from '../types/models';
 import { renderMarkdown } from '../utils/markdown';
 import { BackIcon, CheckIcon, EyeIcon, EyeOffIcon } from './Icons';
@@ -34,8 +35,9 @@ export function ActiveRecallView({
   onExitRecall,
   onOpenNoteByTitle,
   onCompleteRecall,
-  exitLabel = 'Kembali ke Catatan',
+  exitLabel,
 }: ActiveRecallViewProps) {
+  const resolvedExitLabel = exitLabel ?? t('recall.backToNote');
   const [revealedIds, setRevealedIds] = useState<Set<string>>(() => new Set());
   const [summaryRevealed, setSummaryRevealed] = useState<boolean>(false);
 
@@ -131,7 +133,7 @@ export function ActiveRecallView({
             type="button"
             className="cx-touch cx-interactive"
             onClick={onExitRecall}
-            aria-label={exitLabel}
+            aria-label={resolvedExitLabel}
             style={{
               border: 'none',
               backgroundColor: 'transparent',
@@ -142,7 +144,7 @@ export function ActiveRecallView({
           >
             <BackIcon size={20} />
             <span style={{ fontSize: 'var(--cx-text-sm)', fontWeight: 500 }}>
-              {exitLabel}
+              {resolvedExitLabel}
             </span>
           </button>
 
@@ -157,7 +159,7 @@ export function ActiveRecallView({
               color: 'var(--cx-accent-secondary-on-soft)',
             }}
           >
-            {stats.tested} / {stats.total} diuji
+            {t('recall.testedProgress', { tested: stats.tested, total: stats.total })}
           </span>
         </div>
       </header>
@@ -190,7 +192,7 @@ export function ActiveRecallView({
               color: 'var(--cx-ink)',
             }}
           >
-            {note.title.trim() || 'Catatan Tanpa Judul'}
+            {note.title.trim() || t('common.untitledNote')}
           </h1>
           {note.subject.trim() && (
             <div
@@ -222,7 +224,7 @@ export function ActiveRecallView({
                 color: 'var(--cx-ink-muted)',
               }}
             >
-              Jawab setiap pemicu Cue dari ingatan sebelum membuka isi catatan.
+              {t('recall.prompt')}
             </p>
             <button
               type="button"
@@ -243,7 +245,7 @@ export function ActiveRecallView({
               }}
             >
               {allRevealed ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
-              <span>{allRevealed ? 'Tutup Semua' : 'Buka Semua'}</span>
+              <span>{allRevealed ? t('recall.hideAll') : t('recall.revealAll')}</span>
             </button>
           </div>
         </div>
@@ -257,7 +259,7 @@ export function ActiveRecallView({
             return (
               <section
                 key={section.id}
-                aria-label={`Uji ingatan bagian ${idx + 1}`}
+                aria-label={t('recall.sectionAria', { num: idx + 1 })}
                 style={{
                   paddingBlock: '1.15rem',
                   borderBottom: '1px solid var(--cx-border)',
@@ -285,7 +287,7 @@ export function ActiveRecallView({
                       fontStyle: section.cue.trim() ? 'normal' : 'italic',
                     }}
                   >
-                    {section.cue.trim() || `Bagian tanpa cue`}
+                    {section.cue.trim() || t('recall.sectionWithoutCue')}
                   </h2>
 
                   {confidence !== 'untested' && (
@@ -306,7 +308,9 @@ export function ActiveRecallView({
                             : 'var(--cx-accent-warm-on-soft)',
                       }}
                     >
-                      {confidence === 'clear' ? 'Jelas' : 'Masih samar'}
+                      {confidence === 'clear'
+                        ? t('recall.statusClear')
+                        : t('recall.statusFuzzy')}
                     </span>
                   )}
                 </div>
@@ -330,7 +334,7 @@ export function ActiveRecallView({
                     }}
                   >
                     <EyeIcon size={18} />
-                    <span>Intip Jawaban</span>
+                    <span>{t('recall.peekAnswer')}</span>
                   </button>
                 ) : (
                   <div
@@ -367,13 +371,13 @@ export function ActiveRecallView({
                         }}
                       >
                         <EyeOffIcon size={15} />
-                        <span>Sembunyikan lagi</span>
+                        <span>{t('recall.hideAnswer')}</span>
                       </button>
                     </div>
 
                     {renderMarkdown(section.notes, {
                       onOpenNoteLink: onOpenNoteByTitle,
-                      emptyFallback: 'Belum ada isi jawaban pada bagian ini.',
+                      emptyFallback: t('recall.emptySectionAnswer'),
                     })}
 
                     {/* Non-Judgmental Retrieval Clarity Controls */}
@@ -411,7 +415,7 @@ export function ActiveRecallView({
                           fontSize: 'var(--cx-text-sm)',
                         }}
                       >
-                        Masih samar
+                        {t('recall.markFuzzy')}
                       </button>
 
                       <button
@@ -443,7 +447,7 @@ export function ActiveRecallView({
                         }}
                       >
                         {confidence === 'clear' && <CheckIcon size={16} />}
-                        <span>Sudah jelas</span>
+                        <span>{t('recall.markClear')}</span>
                       </button>
                     </div>
                   </div>
@@ -455,7 +459,7 @@ export function ActiveRecallView({
 
         {/* Summary Closure Test */}
         <section
-          aria-label="Uji ringkasan catatan"
+          aria-label={t('recall.summaryAria')}
           style={{
             marginTop: '1.25rem',
             paddingTop: '1.1rem',
@@ -471,7 +475,7 @@ export function ActiveRecallView({
               fontWeight: 600,
             }}
           >
-            Ringkasan
+            {t('recall.summaryHeading')}
           </h2>
 
           {!summaryRevealed ? (
@@ -493,7 +497,7 @@ export function ActiveRecallView({
               }}
             >
               <EyeIcon size={18} />
-              <span>Uji & Buka Ringkasan</span>
+              <span>{t('recall.testAndRevealSummary')}</span>
             </button>
           ) : (
             <div
@@ -530,12 +534,12 @@ export function ActiveRecallView({
                   }}
                 >
                   <EyeOffIcon size={15} />
-                  <span>Tutup Ringkasan</span>
+                  <span>{t('recall.hideSummary')}</span>
                 </button>
               </div>
               {renderMarkdown(note.summary, {
                 onOpenNoteLink: onOpenNoteByTitle,
-                emptyFallback: 'Catatan ini belum memiliki ringkasan.',
+                emptyFallback: t('recall.emptySummary'),
               })}
             </div>
           )}
@@ -572,9 +576,9 @@ export function ActiveRecallView({
             className="cx-mono cx-tabular"
             style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-secondary)' }}
           >
-            <span>{stats.clear} jelas</span>
+            <span>{t('recall.summaryClearCount', { count: stats.clear })}</span>
             <span aria-hidden="true"> · </span>
-            <span>{stats.fuzzy} samar</span>
+            <span>{t('recall.summaryFuzzyCount', { count: stats.fuzzy })}</span>
           </div>
 
           <button
@@ -591,7 +595,7 @@ export function ActiveRecallView({
               fontSize: 'var(--cx-text-sm)',
             }}
           >
-            Selesai Sesi Recall
+            {t('recall.finishSession')}
           </button>
         </div>
       </footer>

@@ -1,4 +1,5 @@
 import type { ComponentChildren } from 'preact';
+import { localeSignal, t, type TranslationKey } from '../i18n';
 import type { TabId } from '../state/theme';
 import { NotesIcon, ReviewIcon, SearchIcon, SettingsIcon } from './Icons';
 
@@ -16,14 +17,14 @@ interface AppShellProps {
 
 interface NavItem {
   id: TabId;
-  label: string;
+  labelKey: TranslationKey;
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: 'notes', label: 'Catatan' },
-  { id: 'review', label: 'Review' },
-  { id: 'search', label: 'Cari' },
-  { id: 'settings', label: 'Setelan' },
+  { id: 'notes', labelKey: 'nav.notes' },
+  { id: 'review', labelKey: 'nav.review' },
+  { id: 'search', labelKey: 'nav.search' },
+  { id: 'settings', labelKey: 'nav.settings' },
 ];
 
 function renderNavIcon(id: TabId) {
@@ -50,22 +51,24 @@ export function AppShell({
   headerRight,
   children,
 }: AppShellProps) {
+  const activeLocale = localeSignal.value;
+
   if (hideChrome) {
     return (
-      <div className="cx-shell">
+      <div className="cx-shell" data-locale={activeLocale}>
         <main className="cx-shell-main">{children}</main>
       </div>
     );
   }
 
   return (
-    <div className="cx-shell">
+    <div className="cx-shell" data-locale={activeLocale}>
       {/* Adaptive Left Navigation Rail (600px-899px slim rail; >=900px full sidebar) */}
-      <aside className="cx-nav-rail" aria-label="Navigasi utama">
+      <aside className="cx-nav-rail" aria-label={t('nav.mainAria')}>
         <div className="cx-rail-brand-compact">
           <img
             src="./cornelieu-icon.png"
-            alt="Cornelieu X Notes"
+            alt={t('app.name')}
             width={40}
             height={40}
             style={{
@@ -105,7 +108,7 @@ export function AppShell({
                   lineHeight: 1.15,
                 }}
               >
-                Cornelieu X
+                {t('app.shortName')}
               </div>
               <div
                 style={{
@@ -114,7 +117,7 @@ export function AppShell({
                   marginTop: '2px',
                 }}
               >
-                Buku Catatan Cornell
+                {t('app.tagline')}
               </div>
             </div>
           </div>
@@ -123,6 +126,7 @@ export function AppShell({
         <nav style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {NAV_ITEMS.map((item) => {
             const isActive = activeTab === item.id;
+            const itemLabel = t(item.labelKey);
             return (
               <button
                 key={item.id}
@@ -145,7 +149,7 @@ export function AppShell({
                   style={{ display: 'inline-flex', alignItems: 'center' }}
                 >
                   {renderNavIcon(item.id)}
-                  <span>{item.label}</span>
+                  <span>{itemLabel}</span>
                 </span>
                 {item.id === 'review' && dueReviewCount > 0 && (
                   <span
@@ -176,7 +180,7 @@ export function AppShell({
             color: 'var(--cx-ink-muted)',
           }}
         >
-          Penyimpanan lokal perangkat
+          {t('app.localFooter')}
         </div>
       </aside>
 
@@ -223,7 +227,7 @@ export function AppShell({
                       color: 'var(--cx-ink)',
                     }}
                   >
-                    {viewTitle ?? 'Cornelieu X Notes'}
+                    {viewTitle ?? t('app.name')}
                   </h1>
                 </div>
                 {headerRight && (
@@ -240,7 +244,7 @@ export function AppShell({
       </div>
 
       {/* Compact Mobile Thumb-Zone Navigation Bar (< 600px) */}
-      <nav className="cx-bottom-nav" aria-label="Navigasi bawah">
+      <nav className="cx-bottom-nav" aria-label={t('nav.bottomAria')}>
         {NAV_ITEMS.map((item) => {
           const isActive = activeTab === item.id;
           return (
@@ -281,7 +285,7 @@ export function AppShell({
                 {item.id === 'review' && dueReviewCount > 0 && (
                   <span
                     className="cx-mono cx-tabular"
-                    aria-label={`${dueReviewCount} catatan perlu review`}
+                    aria-label={t('nav.dueCountAria', { count: dueReviewCount })}
                     style={{
                       position: 'absolute',
                       top: '-3px',
@@ -299,7 +303,7 @@ export function AppShell({
                   </span>
                 )}
               </span>
-              <span>{item.label}</span>
+              <span>{t(item.labelKey)}</span>
             </button>
           );
         })}

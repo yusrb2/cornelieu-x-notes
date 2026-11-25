@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
+import { t } from '../i18n';
 import {
   createNotebookAction,
   deleteNotebookAction,
@@ -43,7 +44,7 @@ export function NotebookManagerSheet({
     e.preventDefault();
     const cleaned = newName.trim();
     if (!cleaned) {
-      setErrorText('Masukkan nama notebook terlebih dahulu.');
+      setErrorText(t('notebooks.emptyNameError'));
       return;
     }
     setErrorText('');
@@ -55,7 +56,7 @@ export function NotebookManagerSheet({
   const handleSaveRename = async (id: string) => {
     const cleaned = editName.trim();
     if (!cleaned) {
-      setErrorText('Nama notebook tidak boleh kosong.');
+      setErrorText(t('notebooks.emptyRenameError'));
       return;
     }
     setErrorText('');
@@ -88,13 +89,13 @@ export function NotebookManagerSheet({
             className="cx-heading"
             style={{ margin: 0, fontSize: 'var(--cx-text-lg)', fontWeight: 600 }}
           >
-            Kelola Notebook
+            {t('notebooks.title')}
           </h2>
           <button
             type="button"
             className="cx-touch cx-interactive"
             onClick={onClose}
-            aria-label="Tutup pengelola notebook"
+            aria-label={t('notebooks.closeAria')}
             style={{
               border: 'none',
               background: 'transparent',
@@ -122,8 +123,8 @@ export function NotebookManagerSheet({
               type="text"
               value={newName}
               onInput={(e) => setNewName(e.currentTarget.value)}
-              placeholder="Nama notebook baru..."
-              aria-label="Nama notebook baru"
+              placeholder={t('notebooks.newPlaceholder')}
+              aria-label={t('notebooks.newAria')}
               style={{
                 flex: '1 1 auto',
                 minHeight: '44px',
@@ -147,15 +148,15 @@ export function NotebookManagerSheet({
                 fontSize: 'var(--cx-text-sm)',
               }}
             >
-              Buat
+              {t('common.create')}
             </button>
           </div>
           <input
             type="text"
             value={newDesc}
             onInput={(e) => setNewDesc(e.currentTarget.value)}
-            placeholder="Deskripsi singkat (opsional)"
-            aria-label="Deskripsi notebook baru"
+            placeholder={t('notebooks.descPlaceholder')}
+            aria-label={t('notebooks.descAria')}
             style={{
               minHeight: '40px',
               padding: '0 0.75rem',
@@ -182,7 +183,7 @@ export function NotebookManagerSheet({
                 color: 'var(--cx-ink-muted)',
               }}
             >
-              Belum ada notebook. Buat satu untuk mengelompokkan mata kuliah atau proyek.
+              {t('notebooks.emptyList')}
             </p>
           ) : (
             notebooks.map((nb, idx) => {
@@ -205,7 +206,7 @@ export function NotebookManagerSheet({
                         type="text"
                         value={editName}
                         onInput={(e) => setEditName(e.currentTarget.value)}
-                        aria-label="Ubah nama notebook"
+                        aria-label={t('notebooks.renameAria')}
                         style={{
                           minHeight: '42px',
                           padding: '0 0.7rem',
@@ -219,8 +220,8 @@ export function NotebookManagerSheet({
                         type="text"
                         value={editDesc}
                         onInput={(e) => setEditDesc(e.currentTarget.value)}
-                        placeholder="Deskripsi singkat"
-                        aria-label="Ubah deskripsi notebook"
+                        placeholder={t('notebooks.descEditPlaceholder')}
+                        aria-label={t('notebooks.descEditAria')}
                         style={{
                           minHeight: '38px',
                           padding: '0 0.7rem',
@@ -243,7 +244,7 @@ export function NotebookManagerSheet({
                             fontSize: 'var(--cx-text-xs)',
                           }}
                         >
-                          Batal
+                          {t('common.cancel')}
                         </button>
                         <button
                           type="button"
@@ -263,7 +264,7 @@ export function NotebookManagerSheet({
                           }}
                         >
                           <CheckIcon size={15} />
-                          <span>Simpan</span>
+                          <span>{t('common.save')}</span>
                         </button>
                       </div>
                     </div>
@@ -288,7 +289,7 @@ export function NotebookManagerSheet({
                                 fontWeight: 400,
                               }}
                             >
-                              ({count} catatan)
+                              {t('notebooks.noteCount', { count })}
                             </span>
                           </div>
                           {nb.description && (
@@ -314,7 +315,7 @@ export function NotebookManagerSheet({
                               setEditDesc(nb.description);
                               setConfirmDeleteId(null);
                             }}
-                            aria-label={`Ubah notebook ${nb.name}`}
+                            aria-label={t('notebooks.editAria', { name: nb.name })}
                             style={{
                               border: 'none',
                               background: 'transparent',
@@ -330,7 +331,7 @@ export function NotebookManagerSheet({
                             onClick={() =>
                               setConfirmDeleteId(isConfirmingDelete ? null : nb.id)
                             }
-                            aria-label={`Hapus notebook ${nb.name}`}
+                            aria-label={t('notebooks.deleteAria', { name: nb.name })}
                             style={{
                               border: 'none',
                               background: 'transparent',
@@ -360,8 +361,8 @@ export function NotebookManagerSheet({
                         >
                           <span style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-secondary)' }}>
                             {count > 0
-                              ? `${count} catatan tetap aman di Tanpa Notebook.`
-                              : 'Hapus notebook kosong ini?'}
+                              ? t('notebooks.confirmDeleteWithNotes', { count })
+                              : t('notebooks.confirmDeleteEmpty')}
                           </span>
                           <div style={{ display: 'flex', gap: '6px' }}>
                             <button
@@ -376,7 +377,7 @@ export function NotebookManagerSheet({
                                 fontSize: 'var(--cx-text-xs)',
                               }}
                             >
-                              Batal
+                              {t('common.cancel')}
                             </button>
                             <button
                               type="button"
@@ -395,7 +396,7 @@ export function NotebookManagerSheet({
                                 fontWeight: 600,
                               }}
                             >
-                              Hapus Notebook
+                              {t('notebooks.confirmDeleteBtn')}
                             </button>
                           </div>
                         </div>

@@ -1,4 +1,5 @@
 import type { ComponentChildren } from 'preact';
+import { t } from '../i18n';
 import { notebooksSignal } from '../state/store';
 import type { CornellNote } from '../types/models';
 import { formatShortDate, formatStatusLabel } from '../utils/format';
@@ -26,7 +27,7 @@ function buildExcerpt(note: CornellNote): string {
     const text = sec.notes.trim() || sec.cue.trim();
     if (text) return stripMarkdownForPreview(text);
   }
-  return 'Belum ada isi catatan.';
+  return t('library.noExcerpt');
 }
 
 export function NoteListView({
@@ -34,8 +35,8 @@ export function NoteListView({
   onOpenNote,
   onCreateNote,
   topSlot,
-  emptyTitle = 'Belum ada catatan di sini',
-  emptyDescription = 'Mulai satu halaman Cornell untuk mencatat kuliah, rapat, atau bacaan secara terstruktur.',
+  emptyTitle = t('library.empty.allTitleMobile'),
+  emptyDescription = t('library.empty.allDescMobile'),
   showCreateFab = true,
   renderRowActions,
   groupPinned = true,
@@ -106,7 +107,7 @@ export function NoteListView({
                   minWidth: 0,
                 }}
               >
-                {note.title.trim() || 'Catatan Tanpa Judul'}
+                {note.title.trim() || t('common.untitledNote')}
               </h3>
               <span
                 className="cx-mono cx-tabular"
@@ -277,14 +278,14 @@ export function NoteListView({
               }}
             >
               <PlusIcon size={18} />
-              <span>Buat Catatan Pertama</span>
+              <span>{t('library.createFirstCta')}</span>
             </button>
           )}
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {pinnedNotes.length > 0 && (
-            <section aria-label="Catatan disematkan">
+            <section aria-label={t('library.pinnedSectionAria')}>
               <h2
                 className="cx-heading"
                 style={{
@@ -296,7 +297,7 @@ export function NoteListView({
                   color: 'var(--cx-ink-secondary)',
                 }}
               >
-                Disematkan
+                {t('library.pinnedHeading')}
               </h2>
               <div>
                 {pinnedNotes.map((n, idx) =>
@@ -307,7 +308,7 @@ export function NoteListView({
           )}
 
           {regularNotes.length > 0 && (
-            <section aria-label="Daftar catatan">
+            <section aria-label={t('library.listAria')}>
               {pinnedNotes.length > 0 && (
                 <h2
                   className="cx-heading"
@@ -320,7 +321,7 @@ export function NoteListView({
                     color: 'var(--cx-ink-secondary)',
                   }}
                 >
-                  Semua Catatan
+                  {t('library.allNotesHeading')}
                 </h2>
               )}
               <div>
@@ -338,7 +339,7 @@ export function NoteListView({
         <button
           type="button"
           onClick={onCreateNote}
-          aria-label="Buat catatan Cornell baru"
+          aria-label={t('library.createFabAria')}
           className="cx-fab"
           style={{
             minHeight: '52px',
@@ -356,7 +357,7 @@ export function NoteListView({
           }}
         >
           <PlusIcon size={20} />
-          <span>Catatan</span>
+          <span>{t('library.fabLabel')}</span>
         </button>
       )}
     </div>

@@ -1,4 +1,5 @@
 import { useMemo } from 'preact/hooks';
+import { t } from '../i18n';
 import {
   activeNotesListSignal,
   saveNoteImmediate,
@@ -67,18 +68,21 @@ export function ReviewQueueView({
             color: 'var(--cx-ink-secondary)',
           }}
         >
-          Latihan retrieval singkat dari kolom Cue menjaga ingatan tetap tajam tanpa membaca ulang pasif.
+          {t('reviewQueue.subtitle')}
         </p>
         <div
           className="cx-mono cx-tabular"
           style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-muted)' }}
         >
-          {queue.dueNow.length} jatuh tempo · {queue.upcoming.length} terjadwal
+          {t('reviewQueue.queueStats', {
+            due: queue.dueNow.length,
+            upcoming: queue.upcoming.length,
+          })}
         </div>
       </div>
 
       {/* Due Today & Overdue */}
-      <section aria-label="Jatuh tempo dan hari ini">
+      <section aria-label={t('reviewQueue.dueSectionAria')}>
         <h2
           className="cx-heading"
           style={{
@@ -89,7 +93,7 @@ export function ReviewQueueView({
             fontWeight: 600,
           }}
         >
-          Jatuh Tempo & Hari Ini
+          {t('reviewQueue.dueHeading')}
         </h2>
 
         {queue.dueNow.length === 0 ? (
@@ -107,7 +111,7 @@ export function ReviewQueueView({
             </span>
             <div>
               <div style={{ fontWeight: 600, fontSize: 'var(--cx-text-base)' }}>
-                Antrean review hari ini sudah bersih
+                {t('reviewQueue.allClearTitle')}
               </div>
               <p
                 className="cx-prose"
@@ -118,8 +122,8 @@ export function ReviewQueueView({
                 }}
               >
                 {queue.upcoming.length > 0
-                  ? `${queue.upcoming.length} catatan terjadwal untuk hari-hari berikutnya.`
-                  : 'Aktifkan jadwal review dari detail catatan mana saja untuk memasukkannya ke sini.'}
+                  ? t('reviewQueue.allClearUpcoming', { count: queue.upcoming.length })
+                  : t('reviewQueue.allClearHint')}
               </p>
             </div>
           </div>
@@ -160,7 +164,7 @@ export function ReviewQueueView({
                       }}
                       className="cx-heading"
                     >
-                      {note.title.trim() || 'Catatan Tanpa Judul'}
+                      {note.title.trim() || t('common.untitledNote')}
                     </button>
 
                     <span
@@ -204,10 +208,15 @@ export function ReviewQueueView({
                         fontWeight: 600,
                       }}
                     >
-                      Prioritas {formatPriorityLabel(note.review.priority)}
+                      {t('reviewQueue.priorityLabel', {
+                        priority: formatPriorityLabel(note.review.priority),
+                      })}
                     </span>
                     <span className="cx-mono cx-tabular" style={{ color: 'var(--cx-ink-muted)' }}>
-                      Interval {note.review.intervalDays}h · {note.sections.length} bagian
+                      {t('reviewQueue.intervalSectionsMeta', {
+                        days: note.review.intervalDays,
+                        count: note.sections.length,
+                      })}
                     </span>
                   </div>
 
@@ -230,7 +239,7 @@ export function ReviewQueueView({
                       }}
                     >
                       <ReviewIcon size={16} />
-                      <span>Mulai Recall</span>
+                      <span>{t('reviewQueue.startRecall')}</span>
                     </button>
 
                     <button
@@ -239,7 +248,7 @@ export function ReviewQueueView({
                       onClick={() => void handleSnooze(note, 1)}
                       style={snoozeBtnStyle()}
                     >
-                      Tunda +1h
+                      {t('reviewQueue.snooze1d')}
                     </button>
                     <button
                       type="button"
@@ -247,7 +256,7 @@ export function ReviewQueueView({
                       onClick={() => void handleSnooze(note, 3)}
                       style={snoozeBtnStyle()}
                     >
-                      Tunda +3h
+                      {t('reviewQueue.snooze3d')}
                     </button>
                   </div>
                 </article>
@@ -259,7 +268,7 @@ export function ReviewQueueView({
 
       {/* Upcoming Scheduled */}
       {queue.upcoming.length > 0 && (
-        <section aria-label="Terjadwal mendatang">
+        <section aria-label={t('reviewQueue.upcomingAria')}>
           <h2
             className="cx-heading"
             style={{
@@ -270,7 +279,7 @@ export function ReviewQueueView({
               fontWeight: 600,
             }}
           >
-            Terjadwal Mendatang
+            {t('reviewQueue.upcomingHeading')}
           </h2>
           <div>
             {queue.upcoming.map((note, idx) => {
@@ -303,13 +312,16 @@ export function ReviewQueueView({
                       className="cx-heading"
                       style={{ fontSize: 'var(--cx-text-base)', fontWeight: 600 }}
                     >
-                      {note.title.trim() || 'Catatan Tanpa Judul'}
+                      {note.title.trim() || t('common.untitledNote')}
                     </div>
                     <div
                       className="cx-mono cx-tabular"
                       style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-muted)' }}
                     >
-                      Interval {note.review.intervalDays}h · {note.subject || 'Umum'}
+                      {t('reviewQueue.intervalSubjectMeta', {
+                        days: note.review.intervalDays,
+                        subject: note.subject || t('common.generalSubject'),
+                      })}
                     </div>
                   </div>
                   <span
@@ -331,7 +343,7 @@ export function ReviewQueueView({
 
       {/* Notes Marked Needs Review without Schedule */}
       {queue.unscheduledNeedsReview.length > 0 && (
-        <section aria-label="Ditandai perlu review">
+        <section aria-label={t('reviewQueue.needsReviewAria')}>
           <h2
             className="cx-heading"
             style={{
@@ -342,7 +354,7 @@ export function ReviewQueueView({
               fontWeight: 600,
             }}
           >
-            Ditandai Perlu Review
+            {t('reviewQueue.needsReviewHeading')}
           </h2>
           <div>
             {queue.unscheduledNeedsReview.map((note, idx) => (
@@ -376,7 +388,7 @@ export function ReviewQueueView({
                     className="cx-heading"
                     style={{ fontSize: 'var(--cx-text-base)', fontWeight: 600 }}
                   >
-                    {note.title.trim() || 'Catatan Tanpa Judul'}
+                    {note.title.trim() || t('common.untitledNote')}
                   </div>
                   {note.subject.trim() && (
                     <div style={{ fontSize: 'var(--cx-text-xs)', color: 'var(--cx-ink-muted)' }}>
@@ -405,7 +417,7 @@ export function ReviewQueueView({
                   }}
                 >
                   <ClockIcon size={15} />
-                  <span>Masukkan Antrean</span>
+                  <span>{t('reviewQueue.enrollAction')}</span>
                 </button>
               </div>
             ))}
