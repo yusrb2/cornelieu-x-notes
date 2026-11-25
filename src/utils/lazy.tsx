@@ -1,10 +1,10 @@
-import type { ComponentType } from 'preact';
+import type { ComponentType, FunctionComponent } from 'preact';
 import { useEffect, useState } from 'preact/hooks';
 
-export function lazyComponent<P extends Record<string, unknown>>(
+export function lazyComponent<P extends object>(
   loader: () => Promise<{ default: ComponentType<P> }>,
   fallbackText = 'Memuat tampilan...',
-): ComponentType<P> {
+): FunctionComponent<P> {
   let cached: ComponentType<P> | null = null;
 
   return function LazyWrapper(props: P) {
@@ -31,7 +31,7 @@ export function lazyComponent<P extends Record<string, unknown>>(
           style={{
             padding: '24px 16px',
             fontSize: '0.875rem',
-            color: 'var(--cx-ink-muted, #7C776C)',
+            color: 'var(--cx-ink-muted, #676258)',
           }}
           role="status"
           aria-live="polite"

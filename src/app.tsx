@@ -19,6 +19,15 @@ import {
 } from './state/store';
 import { initThemeListener, resolvedThemeSignal, type TabId } from './state/theme';
 import type { NoteTemplate } from './types/models';
+import { lazyComponent } from './utils/lazy';
+
+const LazyActiveRecallView = lazyComponent(
+  async () => {
+    const mod = await import('./components/ActiveRecallView');
+    return { default: mod.ActiveRecallView };
+  },
+  'Memuat mode Active Recall...',
+);
 
 const TAB_TITLES: Record<TabId, string> = {
   notes: 'Cornelieu X Notes',
@@ -94,6 +103,14 @@ export function App() {
       <CornellEditor
         note={activeNote}
         onOpenNoteByTitle={(title) => void handleOpenWikiLink(title)}
+        renderRecallView={({ note, onUpdateNote, onExitRecall }) => (
+          <LazyActiveRecallView
+            note={note}
+            onUpdateNote={onUpdateNote}
+            onExitRecall={onExitRecall}
+            onOpenNoteByTitle={(title) => void handleOpenWikiLink(title)}
+          />
+        )}
       />
     );
   }
