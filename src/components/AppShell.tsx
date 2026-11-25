@@ -63,38 +63,60 @@ export function AppShell({
       {/* Adaptive Left Navigation Rail (600px-899px slim rail; >=900px full sidebar) */}
       <aside className="cx-nav-rail" aria-label="Navigasi utama">
         <div className="cx-rail-brand-compact">
-          <span
-            className="cx-heading"
+          <img
+            src="./cornelieu-icon.png"
+            alt="Cornelieu X Notes"
+            width={40}
+            height={40}
             style={{
-              fontSize: '1.15rem',
-              fontWeight: 600,
-              color: 'var(--cx-accent)',
+              width: '40px',
+              height: '40px',
+              borderRadius: 'var(--cx-radius-md)',
+              border: '1px solid var(--cx-border)',
+              objectFit: 'cover',
+              display: 'block',
             }}
-            title="Cornelieu X Notes"
-          >
-            CX
-          </span>
+          />
         </div>
 
         <div className="cx-rail-brand-full">
-          <div
-            className="cx-heading"
-            style={{
-              fontSize: 'var(--cx-text-lg)',
-              fontWeight: 600,
-              color: 'var(--cx-ink)',
-            }}
-          >
-            Cornelieu X
-          </div>
-          <div
-            style={{
-              fontSize: 'var(--cx-text-xs)',
-              color: 'var(--cx-ink-muted)',
-              marginTop: '2px',
-            }}
-          >
-            Buku Catatan Cornell
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <img
+              src="./cornelieu-icon.png"
+              alt=""
+              width={36}
+              height={36}
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: 'var(--cx-radius-md)',
+                border: '1px solid var(--cx-border)',
+                objectFit: 'cover',
+                flexShrink: 0,
+              }}
+            />
+            <div style={{ minWidth: 0 }}>
+              <div
+                className="cx-heading"
+                style={{
+                  fontSize: 'var(--cx-text-lg)',
+                  fontWeight: 600,
+                  color: 'var(--cx-ink)',
+                  lineHeight: 1.15,
+                }}
+              >
+                Cornelieu X
+              </div>
+              <div
+                style={{
+                  fontSize: 'var(--cx-text-xs)',
+                  color: 'var(--cx-ink-muted)',
+                  marginTop: '2px',
+                }}
+              >
+                Buku Catatan Cornell
+              </div>
+            </div>
           </div>
         </div>
 
@@ -176,7 +198,22 @@ export function AppShell({
                   gap: '0.75rem',
                 }}
               >
-                <div style={{ minWidth: 0 }}>
+                <div style={{ minWidth: 0, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <img
+                    src="./cornelieu-icon.png"
+                    alt=""
+                    width={28}
+                    height={28}
+                    className="cx-mobile-brand-mark"
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '8px',
+                      border: '1px solid var(--cx-border)',
+                      objectFit: 'cover',
+                      flexShrink: 0,
+                    }}
+                  />
                   <h1
                     className="cx-heading"
                     style={{

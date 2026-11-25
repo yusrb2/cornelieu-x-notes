@@ -486,18 +486,38 @@ export function SettingsView({ onOpenImportedNote }: SettingsViewProps) {
         <div
           style={{
             marginTop: '1rem',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '0.75rem',
             fontSize: 'var(--cx-text-xs)',
             color: 'var(--cx-ink-muted)',
             lineHeight: 1.6,
           }}
         >
+          <img
+            src="./cornelieu-icon.png"
+            alt="Cornelieu X Notes"
+            width={40}
+            height={40}
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: 'var(--cx-radius-md)',
+              border: '1px solid var(--cx-border)',
+              objectFit: 'cover',
+              flexShrink: 0,
+              marginTop: '2px',
+            }}
+          />
           <div>
-            <strong>Cornelieu X Notes</strong> · v1.0.0 (<span className="cx-mono">com.cornelieux.notes</span>)
+            <div>
+              <strong>Cornelieu X Notes</strong> · v1.0.0 (<span className="cx-mono">com.cornelieux.notes</span>)
+            </div>
+            <div>
+              100% local-first: seluruh catatan disimpan langsung di penyimpanan perangkat tanpa akun, pelacakan, atau server eksternal.
+            </div>
+            <div>Lisensi GNU GPL-3.0 · Copyright (C) 2026 Yusar Brian Sadella</div>
           </div>
-          <div>
-            100% local-first: seluruh catatan disimpan langsung di penyimpanan perangkat tanpa akun, pelacakan, atau server eksternal.
-          </div>
-          <div>Lisensi GNU GPL-3.0 · Copyright (C) 2026 Yusar Brian Sadella</div>
         </div>
       </section>
     </div>

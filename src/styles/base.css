@@ -105,7 +105,8 @@
 }
 
 .cx-heading {
-  font-family: var(--cx-font-serif);
+  font-family: var(--cx-tabular-font);
+  font-weight: 800;
   font-optical-sizing: auto;
   letter-spacing: -0.02em;
   line-height: 1.22;
@@ -278,6 +279,12 @@
 }
 
 /* Desktop & Large Tablet (>= 900px) -> Full Sidebar + 3-Zone Workspace */
+@media (min-width: 600px) {
+  .cx-mobile-brand-mark {
+    display: none !important;
+  }
+}
+
 @media (min-width: 900px) {
   .cx-nav-rail {
     width: 228px;
