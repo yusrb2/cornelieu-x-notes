@@ -16,5 +16,5 @@
     "jsxImportSource": "preact",
     "lib": ["ES2022", "DOM", "DOM.Iterable"]
   },
-  "include": ["src", "tests", "vite.config.ts", "vitest.config.ts"]
+  "include": ["src", "tests", "vite.config.ts", "vitest.config.ts", "capacitor.config.ts"]
 }

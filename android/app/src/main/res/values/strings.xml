@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Cornelieu X Notes</string>
+    <string name="title_activity_main">Cornelieu X Notes</string>
+    <string name="package_name">com.cornelieux.notes</string>
+    <string name="custom_url_scheme">com.cornelieux.notes</string>
+</resources>

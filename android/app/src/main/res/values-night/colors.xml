@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#5BA8A3</color>
+    <color name="colorPrimaryDark">#151614</color>
+    <color name="colorAccent">#5BA8A3</color>
+    <color name="cxWindowBackground">#151614</color>
+</resources>
