@@ -8,7 +8,7 @@ function scrollFocusedElementIntoView(): void {
   ) {
     setTimeout(() => {
       try {
-        active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        active.scrollIntoView({ block: 'center', behavior: 'smooth' });
       } catch {
         active.scrollIntoView();
       }
@@ -45,6 +45,7 @@ export function initMobileViewport(): () => void {
     const vv = window.visualViewport;
     const currentWidth = window.innerWidth;
     const currentHeight = vv ? vv.height : window.innerHeight;
+    const vvOffsetTop = vv ? vv.offsetTop : 0;
 
     if (Math.abs(currentWidth - lastWidth) > 40) {
       lastWidth = currentWidth;
@@ -66,10 +67,18 @@ export function initMobileViewport(): () => void {
       keyboardOpen ? inferredKeyboard : 0,
     );
 
+    // If visualViewport shrank while layout innerHeight stayed tall, offset fixed bars upward
+    const overlayOffset = Math.max(0, window.innerHeight - currentHeight - vvOffsetTop);
+    const barOffset = keyboardOpen && overlayOffset > 80 ? overlayOffset : 0;
+
     root.style.setProperty('--cx-vh', `${Math.round(currentHeight)}px`);
     root.style.setProperty(
       '--cx-keyboard-height',
       `${Math.round(effectiveKeyboard)}px`,
+    );
+    root.style.setProperty(
+      '--cx-keyboard-offset',
+      `${Math.round(barOffset)}px`,
     );
     root.dataset.keyboardOpen = keyboardOpen ? 'true' : 'false';
   };
@@ -81,6 +90,17 @@ export function initMobileViewport(): () => void {
   vv?.addEventListener('scroll', updateViewportMetrics);
   window.addEventListener('resize', updateViewportMetrics);
 
+  const onOrientationChange = () => {
+    setTimeout(() => {
+      baselineHeight = window.visualViewport?.height ?? window.innerHeight;
+      lastWidth = window.innerWidth;
+      updateViewportMetrics();
+      scrollFocusedElementIntoView();
+    }, 120);
+  };
+  window.addEventListener('orientationchange', onOrientationChange);
+  window.screen?.orientation?.addEventListener?.('change', onOrientationChange);
+
   const onFocusIn = (event: FocusEvent) => {
     const target = event.target;
     if (
@@ -91,7 +111,11 @@ export function initMobileViewport(): () => void {
       scrollFocusedElementIntoView();
     }
   };
+  const onFocusOut = () => {
+    setTimeout(updateViewportMetrics, 60);
+  };
   document.addEventListener('focusin', onFocusIn);
+  document.addEventListener('focusout', onFocusOut);
 
   const onThemeChange = (event: Event) => {
     const custom = event as CustomEvent<{ theme?: 'light' | 'dark' }>;
@@ -109,7 +133,14 @@ export function initMobileViewport(): () => void {
   if (Capacitor.isNativePlatform()) {
     void import('@capacitor/keyboard')
       .then(async ({ Keyboard }) => {
-        const showHandle = await Keyboard.addListener(
+        const willShowHandle = await Keyboard.addListener(
+          'keyboardWillShow',
+          (info) => {
+            nativeKeyboardHeight = info.keyboardHeight;
+            updateViewportMetrics();
+          },
+        );
+        const didShowHandle = await Keyboard.addListener(
           'keyboardDidShow',
           (info) => {
             nativeKeyboardHeight = info.keyboardHeight;
@@ -117,7 +148,14 @@ export function initMobileViewport(): () => void {
             scrollFocusedElementIntoView();
           },
         );
-        const hideHandle = await Keyboard.addListener(
+        const willHideHandle = await Keyboard.addListener(
+          'keyboardWillHide',
+          () => {
+            nativeKeyboardHeight = 0;
+            updateViewportMetrics();
+          },
+        );
+        const didHideHandle = await Keyboard.addListener(
           'keyboardDidHide',
           () => {
             nativeKeyboardHeight = 0;
@@ -125,8 +163,10 @@ export function initMobileViewport(): () => void {
           },
         );
         nativeCleanups.push(() => {
-          void showHandle.remove();
-          void hideHandle.remove();
+          void willShowHandle.remove();
+          void didShowHandle.remove();
+          void willHideHandle.remove();
+          void didHideHandle.remove();
         });
       })
       .catch(() => {
@@ -138,7 +178,13 @@ export function initMobileViewport(): () => void {
     vv?.removeEventListener('resize', updateViewportMetrics);
     vv?.removeEventListener('scroll', updateViewportMetrics);
     window.removeEventListener('resize', updateViewportMetrics);
+    window.removeEventListener('orientationchange', onOrientationChange);
+    window.screen?.orientation?.removeEventListener?.(
+      'change',
+      onOrientationChange,
+    );
     document.removeEventListener('focusin', onFocusIn);
+    document.removeEventListener('focusout', onFocusOut);
     window.removeEventListener('cx-theme-change', onThemeChange);
     nativeCleanups.forEach((fn) => fn());
   };

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import {
   closeActiveNoteOrBack,
   notebooksSignal,
+  noteHistoryStackSignal,
   prefsSignal,
   saveStateSignal,
   scheduleNoteAutoSave,
@@ -13,6 +14,7 @@ import {
 import type { CornellNote, CornellSection, NoteStatus } from '../types/models';
 import { formatFullDate, formatStatusLabel, nextNoteStatus } from '../utils/format';
 import { createEmptySection } from '../utils/id';
+import { resolveCornellLayout, useViewportWidth } from '../utils/layout';
 import { renderMarkdown, toggleChecklistAtLine } from '../utils/markdown';
 import { AutoResizeTextarea } from './AutoResizeTextarea';
 import {
@@ -37,6 +39,8 @@ export type EditorMode = 'edit' | 'read' | 'recall' | 'focus';
 interface CornellEditorProps {
   note: CornellNote;
   initialMode?: EditorMode;
+  embedded?: boolean;
+  onFullscreenChange?: (fullscreen: boolean) => void;
   onOpenNoteByTitle: (title: string) => void;
   onOpenRelatedNotes?: () => void;
   onOpenReviewSettings?: () => void;
@@ -56,6 +60,8 @@ type FocusedField =
 export function CornellEditor({
   note,
   initialMode = 'edit',
+  embedded = false,
+  onFullscreenChange,
   onOpenNoteByTitle,
   onOpenRelatedNotes,
   onOpenReviewSettings,
@@ -64,9 +70,7 @@ export function CornellEditor({
 }: CornellEditorProps) {
   const [mode, setMode] = useState<EditorMode>(initialMode);
   const [layoutOverride, setLayoutOverride] = useState<'stacked' | 'split' | null>(null);
-  const [isWideViewport, setIsWideViewport] = useState<boolean>(() =>
-    typeof window !== 'undefined' ? window.innerWidth >= 720 : false,
-  );
+  const viewportWidth = useViewportWidth();
   const [metaExpanded, setMetaExpanded] = useState<boolean>(false);
   const [tagDraft, setTagDraft] = useState<string>('');
   const [showFormatBar, setShowFormatBar] = useState<boolean>(false);
@@ -83,10 +87,11 @@ export function CornellEditor({
   }, [note.id, initialMode]);
 
   useEffect(() => {
-    const onResize = () => setIsWideViewport(window.innerWidth >= 720);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
-  }, []);
+    onFullscreenChange?.(mode === 'focus' || mode === 'recall');
+    return () => {
+      onFullscreenChange?.(false);
+    };
+  }, [mode, onFullscreenChange]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -102,12 +107,15 @@ export function CornellEditor({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [showOverflow, mode]);
 
-  const resolvedLayout = useMemo<'stacked' | 'split'>(() => {
-    if (layoutOverride) return layoutOverride;
-    const pref = prefsSignal.value.defaultLayout;
-    if (pref === 'stacked' || pref === 'split') return pref;
-    return isWideViewport ? 'split' : 'stacked';
-  }, [layoutOverride, prefsSignal.value.defaultLayout, isWideViewport]);
+  const resolvedLayout = useMemo<'stacked' | 'split'>(
+    () =>
+      resolveCornellLayout(
+        prefsSignal.value.defaultLayout,
+        layoutOverride,
+        viewportWidth,
+      ),
+    [layoutOverride, prefsSignal.value.defaultLayout, viewportWidth],
+  );
 
   const notebooks = notebooksSignal.value;
   const notebookName =
@@ -267,11 +275,14 @@ export function CornellEditor({
 
   const isFocusMode = mode === 'focus';
   const canEdit = mode === 'edit' || mode === 'focus';
+  const isEmbeddedActive = embedded && !isFocusMode;
+  const hasHistory = noteHistoryStackSignal.value.length > 0;
 
   return (
     <div
       style={{
-        minHeight: 'var(--cx-vh)',
+        minHeight: isEmbeddedActive ? '100%' : 'var(--cx-vh)',
+        flex: isEmbeddedActive ? '1 1 auto' : undefined,
         display: 'flex',
         flexDirection: 'column',
         backgroundColor: 'var(--cx-bg)',
@@ -281,7 +292,7 @@ export function CornellEditor({
       <header className="cx-header" style={{ backgroundColor: 'var(--cx-bg)' }}>
         <div
           style={{
-            maxWidth: isFocusMode ? '72ch' : '960px',
+            maxWidth: isFocusMode ? '72ch' : '1040px',
             marginInline: 'auto',
             minHeight: '52px',
             display: 'flex',
@@ -290,31 +301,55 @@ export function CornellEditor({
             gap: '0.5rem',
           }}
         >
-          <button
-            type="button"
-            className="cx-touch cx-interactive"
-            onClick={() => {
-              if (isFocusMode) {
-                setMode('edit');
-              } else {
-                void closeActiveNoteOrBack();
-              }
-            }}
-            aria-label={isFocusMode ? 'Keluar mode fokus' : 'Kembali ke daftar catatan'}
-            style={{
-              border: 'none',
-              background: 'transparent',
-              borderRadius: 'var(--cx-radius-md)',
-              paddingInline: '0.45rem',
-              gap: '0.35rem',
-              color: 'var(--cx-ink)',
-            }}
-          >
-            <BackIcon size={20} />
-            <span style={{ fontSize: 'var(--cx-text-sm)', fontWeight: 500 }}>
-              {isFocusMode ? 'Keluar Fokus' : 'Catatan'}
-            </span>
-          </button>
+          {isEmbeddedActive && !hasHistory ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                minWidth: 0,
+                fontSize: 'var(--cx-text-xs)',
+                fontWeight: 600,
+                color: 'var(--cx-ink-secondary)',
+              }}
+            >
+              <span
+                style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {notebookName}
+              </span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="cx-touch cx-interactive"
+              onClick={() => {
+                if (isFocusMode) {
+                  setMode('edit');
+                } else {
+                  void closeActiveNoteOrBack();
+                }
+              }}
+              aria-label={isFocusMode ? 'Keluar mode fokus' : 'Kembali ke daftar catatan'}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                borderRadius: 'var(--cx-radius-md)',
+                paddingInline: '0.45rem',
+                gap: '0.35rem',
+                color: 'var(--cx-ink)',
+              }}
+            >
+              <BackIcon size={20} />
+              <span style={{ fontSize: 'var(--cx-text-sm)', fontWeight: 500 }}>
+                {isFocusMode ? 'Keluar Fokus' : 'Catatan'}
+              </span>
+            </button>
+          )}
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
             <span
@@ -375,12 +410,12 @@ export function CornellEditor({
         style={{
           flex: '1 1 auto',
           width: '100%',
-          maxWidth: isFocusMode || resolvedLayout === 'stacked' ? '72ch' : '960px',
+          maxWidth: isFocusMode || resolvedLayout === 'stacked' ? '72ch' : '1040px',
           marginInline: 'auto',
-          paddingTop: '1rem',
-          paddingLeft: 'max(1rem, var(--cx-safe-left))',
-          paddingRight: 'max(1rem, var(--cx-safe-right))',
-          paddingBottom: 'calc(7rem + var(--cx-safe-bottom))',
+          paddingTop: 'var(--cx-page-py)',
+          paddingLeft: 'max(var(--cx-page-px), var(--cx-safe-left))',
+          paddingRight: 'max(var(--cx-page-px), var(--cx-safe-right))',
+          paddingBottom: isEmbeddedActive ? '2rem' : 'calc(7rem + var(--cx-safe-bottom))',
         }}
       >
         {/* Document Header Block */}
@@ -1154,18 +1189,9 @@ export function CornellEditor({
 
       {/* Thumb-Zone Bottom Editor Bar */}
       <div
-        style={{
-          position: 'fixed',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 25,
-          backgroundColor: 'var(--cx-surface)',
-          borderTop: '1px solid var(--cx-border)',
-          paddingBottom: 'var(--cx-safe-bottom)',
-          paddingLeft: 'max(0.5rem, var(--cx-safe-left))',
-          paddingRight: 'max(0.5rem, var(--cx-safe-right))',
-        }}
+        className={
+          isEmbeddedActive ? 'cx-editor-bar cx-editor-bar--embedded' : 'cx-editor-bar'
+        }
       >
         {/* Progressive Disclosure Quick-Format Bar */}
         {showFormatBar && canEdit && (

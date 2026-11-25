@@ -22,7 +22,7 @@ export function UndoSnackbar({ aboveEditorBar = false }: UndoSnackbarProps) {
         left: '50%',
         transform: 'translateX(-50%)',
         bottom: aboveEditorBar
-          ? 'calc(4.5rem + var(--cx-safe-bottom))'
+          ? 'calc(4.5rem + var(--cx-safe-bottom) + var(--cx-keyboard-offset, 0px))'
           : 'calc(var(--cx-nav-height) + var(--cx-safe-bottom) + 0.85rem)',
         zIndex: 45,
         width: 'min(calc(100vw - 2rem), 460px)',

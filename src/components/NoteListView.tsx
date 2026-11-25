@@ -15,6 +15,7 @@ interface NoteListViewProps {
   showCreateFab?: boolean;
   renderRowActions?: (note: CornellNote) => ComponentChildren;
   groupPinned?: boolean;
+  selectedNoteId?: string | null;
 }
 
 function buildExcerpt(note: CornellNote): string {
@@ -38,6 +39,7 @@ export function NoteListView({
   showCreateFab = true,
   renderRowActions,
   groupPinned = true,
+  selectedNoteId = null,
 }: NoteListViewProps) {
   const notebooks = notebooksSignal.value;
   const notebookMap = new Map(notebooks.map((nb) => [nb.id, nb.name]));
@@ -48,12 +50,16 @@ export function NoteListView({
   const renderNoteRow = (note: CornellNote, isLast: boolean) => {
     const nbName = note.notebookId ? notebookMap.get(note.notebookId) : undefined;
     const excerpt = buildExcerpt(note);
+    const isSelected = selectedNoteId === note.id;
 
     return (
       <article
         key={note.id}
         style={{
           borderBottom: isLast ? 'none' : '1px solid var(--cx-border)',
+          backgroundColor: isSelected ? 'var(--cx-accent-soft)' : 'transparent',
+          borderRadius: isSelected ? 'var(--cx-radius-md)' : 0,
+          transition: 'background-color var(--cx-duration-fast) var(--cx-ease)',
         }}
       >
         <div

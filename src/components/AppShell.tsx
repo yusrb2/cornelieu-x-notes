@@ -8,6 +8,8 @@ interface AppShellProps {
   viewTitle?: string;
   dueReviewCount?: number;
   hideChrome?: boolean;
+  fullBleedWorkspace?: boolean;
+  sidebarExtras?: ComponentChildren;
   headerRight?: ComponentChildren;
   children: ComponentChildren;
 }
@@ -43,6 +45,8 @@ export function AppShell({
   viewTitle,
   dueReviewCount = 0,
   hideChrome = false,
+  fullBleedWorkspace = false,
+  sidebarExtras,
   headerRight,
   children,
 }: AppShellProps) {
@@ -56,9 +60,23 @@ export function AppShell({
 
   return (
     <div className="cx-shell">
-      {/* Expanded Width Left Navigation Rail (>= 768px) */}
+      {/* Adaptive Left Navigation Rail (600px-899px slim rail; >=900px full sidebar) */}
       <aside className="cx-nav-rail" aria-label="Navigasi utama">
-        <div style={{ paddingInline: '0.75rem', marginBottom: '1.5rem' }}>
+        <div className="cx-rail-brand-compact">
+          <span
+            className="cx-heading"
+            style={{
+              fontSize: '1.15rem',
+              fontWeight: 600,
+              color: 'var(--cx-accent)',
+            }}
+            title="Cornelieu X Notes"
+          >
+            CX
+          </span>
+        </div>
+
+        <div className="cx-rail-brand-full">
           <div
             className="cx-heading"
             style={{
@@ -89,26 +107,27 @@ export function AppShell({
                 type="button"
                 onClick={() => onSelectTab(item.id)}
                 aria-current={isActive ? 'page' : undefined}
-                className="cx-touch cx-interactive"
+                className="cx-touch cx-interactive cx-rail-item"
                 style={{
                   width: '100%',
-                  justifyContent: 'space-between',
-                  paddingInline: '0.75rem',
+                  position: 'relative',
                   borderRadius: 'var(--cx-radius-md)',
                   border: 'none',
                   backgroundColor: isActive ? 'var(--cx-accent-soft)' : 'transparent',
                   color: isActive ? 'var(--cx-accent-on-soft)' : 'var(--cx-ink-secondary)',
                   fontWeight: isActive ? 600 : 500,
-                  fontSize: 'var(--cx-text-sm)',
                 }}
               >
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span
+                  className="cx-rail-item-inner"
+                  style={{ display: 'inline-flex', alignItems: 'center' }}
+                >
                   {renderNavIcon(item.id)}
                   <span>{item.label}</span>
                 </span>
                 {item.id === 'review' && dueReviewCount > 0 && (
                   <span
-                    className="cx-mono cx-tabular"
+                    className="cx-mono cx-tabular cx-rail-badge-inline"
                     style={{
                       fontSize: '0.72rem',
                       fontWeight: 600,
@@ -126,12 +145,11 @@ export function AppShell({
           })}
         </nav>
 
+        {sidebarExtras && <div className="cx-rail-extras">{sidebarExtras}</div>}
+
         <div
+          className="cx-rail-footer"
           style={{
-            marginTop: 'auto',
-            paddingInline: '0.75rem',
-            paddingTop: '1rem',
-            borderTop: '1px solid var(--cx-border)',
             fontSize: 'var(--cx-text-xs)',
             color: 'var(--cx-ink-muted)',
           }}
@@ -142,45 +160,49 @@ export function AppShell({
 
       {/* Primary Workspace Column */}
       <div className="cx-shell-main">
-        <header className="cx-header">
-          <div
-            style={{
-              maxWidth: '960px',
-              marginInline: 'auto',
-              minHeight: '56px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: '0.75rem',
-            }}
-          >
-            <div style={{ minWidth: 0 }}>
-              <h1
-                className="cx-heading"
+        {fullBleedWorkspace ? (
+          children
+        ) : (
+          <>
+            <header className="cx-header">
+              <div
                 style={{
-                  margin: 0,
-                  fontSize: 'var(--cx-text-xl)',
-                  fontWeight: 600,
-                  color: 'var(--cx-ink)',
+                  maxWidth: '960px',
+                  marginInline: 'auto',
+                  minHeight: '56px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '0.75rem',
                 }}
               >
-                {viewTitle ?? 'Cornelieu X Notes'}
-              </h1>
-            </div>
-            {headerRight && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                {headerRight}
+                <div style={{ minWidth: 0 }}>
+                  <h1
+                    className="cx-heading"
+                    style={{
+                      margin: 0,
+                      fontSize: 'var(--cx-text-xl)',
+                      fontWeight: 600,
+                      color: 'var(--cx-ink)',
+                    }}
+                  >
+                    {viewTitle ?? 'Cornelieu X Notes'}
+                  </h1>
+                </div>
+                {headerRight && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    {headerRight}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        </header>
+            </header>
 
-        <main className="cx-content-wrap cx-has-bottom-nav" style={{ paddingTop: '1rem' }}>
-          {children}
-        </main>
+            <main className="cx-content-wrap cx-has-bottom-nav">{children}</main>
+          </>
+        )}
       </div>
 
-      {/* Compact Mobile Thumb-Zone Navigation Bar (< 768px) */}
+      {/* Compact Mobile Thumb-Zone Navigation Bar (< 600px) */}
       <nav className="cx-bottom-nav" aria-label="Navigasi bawah">
         {NAV_ITEMS.map((item) => {
           const isActive = activeTab === item.id;
@@ -194,6 +216,7 @@ export function AppShell({
               style={{
                 position: 'relative',
                 flex: '1 1 0%',
+                minWidth: 0,
                 flexDirection: 'column',
                 gap: '2px',
                 padding: '4px 6px',
