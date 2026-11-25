@@ -20,6 +20,7 @@ import {
   createNewNoteAction,
   dueReviewCountSignal,
   emptyTrashAction,
+  flushPendingSaves,
   initStore,
   isHydratedSignal,
   notebooksSignal,
@@ -36,6 +37,13 @@ import {
 } from './state/store';
 import { initThemeListener, resolvedThemeSignal, type TabId } from './state/theme';
 import type { CornellNote, LibraryViewMode, NoteTemplate } from './types/models';
+import {
+  copyTextToClipboard,
+  noteToMarkdown,
+  noteToPlainText,
+  sanitizeFilename,
+  triggerFileDownload,
+} from './utils/exportImport';
 import { lazyComponent } from './utils/lazy';
 import {
   computeNextReview,
@@ -57,6 +65,14 @@ const LazyReviewQueueView = lazyComponent(
     return { default: mod.ReviewQueueView };
   },
   'Memuat antrean review...',
+);
+
+const LazySettingsView = lazyComponent(
+  async () => {
+    const mod = await import('./components/SettingsView');
+    return { default: mod.SettingsView };
+  },
+  'Memuat setelan...',
 );
 
 const TAB_TITLES: Record<TabId, string> = {
@@ -178,6 +194,42 @@ export function App() {
     );
   };
 
+  const handleExportActiveNote = async (
+    note: CornellNote,
+    format: 'md' | 'txt' | 'copy',
+  ) => {
+    await flushPendingSaves();
+    const nbName = notebooksSignal.value.find((nb) => nb.id === note.notebookId)?.name;
+    const baseName = sanitizeFilename(note.title || 'catatan-cornell');
+
+    if (format === 'md') {
+      triggerFileDownload(
+        `${baseName}.md`,
+        noteToMarkdown(note, nbName),
+        'text/markdown;charset=utf-8',
+      );
+      return;
+    }
+
+    const plain = noteToPlainText(note, nbName);
+    if (format === 'txt') {
+      triggerFileDownload(`${baseName}.txt`, plain, 'text/plain;charset=utf-8');
+      return;
+    }
+
+    const copied = await copyTextToClipboard(plain);
+    showUndoBanner(
+      {
+        message: copied
+          ? 'Teks catatan disalin ke papan klip'
+          : 'Gagal menyalin teks ke papan klip',
+        actionLabel: 'Tutup',
+        onUndo: async () => {},
+      },
+      3000,
+    );
+  };
+
   const activeNote = activeNoteSignal.value;
   const activeTab = activeTabSignal.value;
   const hydrated = isHydratedSignal.value;
@@ -246,6 +298,7 @@ export function App() {
           onOpenNoteByTitle={(title) => void handleOpenWikiLink(title)}
           onOpenRelatedNotes={() => setRelatedSheetOpen(true)}
           onOpenReviewSettings={() => setReviewSheetOpen(true)}
+          onExportNote={(format) => void handleExportActiveNote(activeNote, format)}
           renderRecallView={({ note, onUpdateNote, onExitRecall }) => (
             <LazyActiveRecallView
               note={note}
@@ -464,16 +517,14 @@ export function App() {
       ) : activeTab === 'search' ? (
         <SearchView onOpenNote={(id) => void handleOpenNote(id)} />
       ) : (
-        <div
-          style={{
-            padding: '1.5rem 0.25rem',
-            borderTop: '1px solid var(--cx-border)',
-            color: 'var(--cx-ink-secondary)',
-            fontSize: 'var(--cx-text-sm)',
+        <LazySettingsView
+          onOpenImportedNote={(id) => {
+            if (typeof window !== 'undefined') {
+              window.history.pushState({ cxNote: id }, '');
+            }
+            void openNote(id);
           }}
-        >
-          Tampilan {TAB_TITLES[activeTab]} akan diaktifkan pada tahap modul berikutnya.
-        </div>
+        />
       )}
 
       <TemplatePickerSheet
